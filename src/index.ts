@@ -316,9 +316,9 @@ function printHelp(): void {
 
 Usage:
   smocker [serve]                 Start the mock server
-  smocker check api               (Phase 3) Validate spec against real API
-  smocker check mocks             (Phase 3) Validate spec against local mocks
-  smocker check all               (Phase 3) Both
+  smocker check api               Validate spec against real API
+  smocker check mocks             Validate spec against local mocks
+  smocker check all               Both
 
 Options:
   --config <path>                 Path to mock.config.ts (default ./mock.config.ts)

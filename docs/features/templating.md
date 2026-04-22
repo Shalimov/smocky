@@ -1,19 +1,20 @@
-# 04 — Templating
+# Templating
 
 Smocker's template engine is a **Liquid-lite** interpolator that runs on
-every string value inside `response.json`. It powers two abilities:
+every string value inside `response.json`. Use it to:
 
 1. Pull live data from the incoming request (`req.params.id`, …).
 2. Generate dynamic data via user-defined helpers (`guid`, `randomInt`, …).
+3. Read from the in-memory database (`db.users.all`, …).
 
-## Token Syntax (D-007)
+## Token Syntax
 
 ```
 {{ <expression> }}
 ```
 
 The expression is parsed into a head token and zero or more arguments,
-whitespace-separated. Examples:
+whitespace-separated:
 
 ```
 {{ req.params.id }}
@@ -22,8 +23,8 @@ whitespace-separated. Examples:
 {{ now 'iso' }}
 ```
 
-Strings can be single- or double-quoted. Numbers are passed as strings
-to helpers (D-009 — helpers parse what they need).
+Strings can be single- or double-quoted. Numbers and other tokens are
+passed as raw strings; helpers parse what they need.
 
 ## Where Tokens Are Evaluated
 
@@ -33,14 +34,16 @@ untouched.
 
 ```json
 {
-  "id": "{{ req.params.id }}",        ← evaluated
-  "uuid": "{{ guid }}",               ← evaluated
-  "count": 5,                          ← passes through
-  "createdAt": "static-string"         ← passes through (no token)
+  "id":     "{{ req.params.id }}",   ← evaluated
+  "uuid":   "{{ guid }}",            ← evaluated
+  "count":  5,                       ← passes through
+  "static": "static-string"          ← passes through (no token)
 }
 ```
 
-## Resolution Rules (D-010)
+Headers are also rendered through the engine.
+
+## Resolution Rules
 
 ### Single-Token Strings → Typed Replacement
 
@@ -54,7 +57,7 @@ replaced with the helper's actual return type:
 | `boolean`     | `true`                            |
 | `object`      | `{ "k": "v" }`                    |
 | `array`       | `[1, 2, 3]`                       |
-| `null`        | `null`                            |
+| `null` / `undefined` | `null`                     |
 
 ```json
 { "count": "{{ randomInt 1 10 }}" }
@@ -63,17 +66,18 @@ replaced with the helper's actual return type:
 
 ### Embedded Tokens → Stringification & Concatenation
 
-If the token is part of a larger string, the result is coerced to a string
-and inserted in place:
+If the token is part of a larger string, the result is coerced to a string:
 
 ```json
 { "label": "user-{{ req.params.id }}" }
 // → { "label": "user-42" }
 ```
 
+`undefined` becomes the empty string in embedded mode.
+
 ## Built-In Namespaces
 
-### `req.*` (D-008)
+### `req.*`
 
 | Path                    | Description                              |
 |-------------------------|------------------------------------------|
@@ -84,12 +88,9 @@ and inserted in place:
 | `req.headers.<name>`    | Lowercased header value                  |
 | `req.body.<dot.path>`   | Parsed JSON body, dot-walked             |
 
-Missing values resolve to `undefined`, which is serialized as `null` in
-single-token mode and `""` in embedded mode.
+### `db.*`
 
-### `db.*` — Phase 2 (D-011, D-025)
-
-Read-only collection access:
+Read-only collection access (see [Database](database.md)):
 
 ```
 {{ db.users.all }}
@@ -97,13 +98,13 @@ Read-only collection access:
 {{ db.users.where active=true }}
 ```
 
-In Phase 1 these tokens raise an error: `db.* is reserved (Phase 2)`.
+Mutating methods (`insert`, `update`, `remove`) are **not** available in
+templates — use a [hook](hooks.md).
 
-## Helpers (D-009)
+## Helpers
 
-Helpers are user-supplied functions in `helpers/`. The engine treats them as
-the catch-all: any token whose head is not a built-in namespace is looked up
-as a helper.
+Any token whose head is not `req` or `db` is looked up in `helpers/`. See
+[Helpers](helpers.md) for the contract.
 
 ```ts
 // helpers/randomInt.ts
@@ -118,30 +119,17 @@ export default function randomInt(min: string, max: string): number {
 { "n": "{{ randomInt 1 100 }}" }
 ```
 
-See [`06-helpers.md`](06-helpers.md) for the full helper contract.
-
 ## Escaping
 
 To emit a literal `{{`, escape the second brace: `{\{`. The engine treats
-that pair as a non-token. (Plain `{` is also fine since the lexer requires
-two consecutive braces.)
+that pair as a non-token. Plain single `{` is fine since the lexer requires
+two consecutive braces.
 
 ## Errors
 
 | Condition                          | Behavior                                 |
 |------------------------------------|------------------------------------------|
-| Unknown helper                     | Throw `TemplateError`; responder → 500   |
+| Unknown helper                     | 500 with `TemplateError` body            |
+| Helper throws                      | 500 with `TemplateError` (cause attached)|
 | `req.body` accessed but no body    | Resolves to `undefined`                  |
-| Helper throws                      | Throw `TemplateError` with cause         |
-| `db.*` in Phase 1                  | Throw `TemplateError` with explanation   |
-
-## Performance Notes
-
-- The walker is non-recursive on string values (only descends containers).
-- Helpers are loaded once at server startup; lookups are O(1).
-- Template parsing is lazy: each string is scanned only when needed.
-
-## References
-
-- D-007, D-008, D-009, D-010, D-011, D-025
-- [`05-hooks.md`](05-hooks.md), [`06-helpers.md`](06-helpers.md)
+| `db.*` mutation in template        | 500 with "use a hook" message            |

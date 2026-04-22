@@ -1,9 +1,9 @@
-# 05 — Hooks
+# Hooks
 
 Hooks are per-endpoint TypeScript files that run **after** templating and
-**before** the response is sent. They mutate the response object in place
-(D-012), giving you full programmatic control without leaving the
-filesystem-routing model.
+**before** the response is sent. They mutate the response object in place,
+giving you full programmatic control without leaving the filesystem-routing
+model.
 
 ## File Location
 
@@ -12,9 +12,9 @@ endpoints/<path>/hook.ts
 ```
 
 A hook lives in the same folder as its `response.json`. If no `hook.ts`
-exists, the templated response is returned as-is.
+(or `hook.js`) exists, the templated response is returned as-is.
 
-## Signature (D-013, D-014)
+## Signature
 
 ```ts
 import type { Hook } from 'smocker';
@@ -25,8 +25,6 @@ const hook: Hook = async (req, res, ctx) => {
 
 export default hook;
 ```
-
-`Hook` type:
 
 ```ts
 type Hook = (
@@ -68,7 +66,7 @@ Mutation is the contract. Returning a value is ignored.
 ```ts
 const hook: Hook = (req, res) => {
   res.status = 418;
-  res.headers['X-Hooked'] = 'true';
+  res.headers['x-hooked'] = 'true';
   res.body = { ...(res.body as object), hooked: true };
 };
 export default hook;
@@ -76,16 +74,14 @@ export default hook;
 
 ## `ctx` — Shared Context
 
-Phase 1: `{ req }`. Phase 2 adds `ctx.db`.
-
 ```ts
 interface Ctx {
   req: MockRequest;
-  // db: Db;            // Phase 2
+  db?: Db;            // available when seeded or used via mock.config.ts
 }
 ```
 
-Reserving `ctx` from day one keeps the Phase 2 plumbing non-breaking.
+See [Database](database.md) for `ctx.db` usage.
 
 ## Execution Model
 
@@ -96,9 +92,9 @@ Reserving `ctx` from day one keeps the Phase 2 plumbing non-breaking.
 
 ## Error Handling
 
-Uncaught throws/rejections from a hook produce a `500 Internal Server Error`
-with a diagnostic body in development mode. The error is logged with the
-endpoint path and method.
+Uncaught throws/rejections from a hook produce a `500 Internal Server
+Error` with a diagnostic body. The error is logged with the endpoint path
+and method.
 
 ```json
 {
@@ -132,7 +128,7 @@ const hook: Hook = (req, res) => {
 export default hook;
 ```
 
-### Reading Headers
+### Auth Guard via Headers
 
 ```ts
 const hook: Hook = (req, res) => {
@@ -144,14 +140,25 @@ const hook: Hook = (req, res) => {
 export default hook;
 ```
 
-### (Phase 2) Mutating DB
+### CRUD Against the In-Memory DB
 
 ```ts
 const hook: Hook = (req, res, ctx) => {
-  const users = ctx.db.collection('users');
-  const created = users.insert(req.body as object);
-  res.status = 201;
-  res.body = created;
+  const users = ctx.db!.collection('users');
+
+  if (req.method === 'POST') {
+    res.body = users.insert(req.body as { name: string });
+    res.status = 201;
+  }
+};
+export default hook;
+```
+
+### Simulating Latency
+
+```ts
+const hook: Hook = (_req, res) => {
+  res.delay = 750; // milliseconds, applied before respond
 };
 export default hook;
 ```
@@ -163,9 +170,3 @@ export default hook;
   fast or use `delay` to simulate latency intentionally.
 - **Re-running templates inside a hook.** Templates are already resolved
   by the time the hook runs.
-
-## References
-
-- D-012, D-013, D-014
-- [`03-request-lifecycle.md`](03-request-lifecycle.md),
-  [`04-templating.md`](04-templating.md)

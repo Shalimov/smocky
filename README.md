@@ -8,7 +8,7 @@ Convention-over-configuration mock server for Bun.
 - Keep mocks as files instead of custom middleware glue.
 - Add dynamic values with templates, helpers, and hooks.
 
-Read more: [docs/architecture/01-overview.md](docs/architecture/01-overview.md)
+Read more: [docs/README.md](docs/README.md)
 
 ## Quick Start
 
@@ -22,7 +22,7 @@ curl localhost:3000/posts
 
 The included `mock.config.ts` proxies unmocked routes to `https://jsonplaceholder.typicode.com`.
 
-Read more: [docs/architecture/03-request-lifecycle.md](docs/architecture/03-request-lifecycle.md)
+Read more: [docs/getting-started.md](docs/getting-started.md)
 
 ## Folder Conventions
 
@@ -45,7 +45,7 @@ Read more: [docs/architecture/03-request-lifecycle.md](docs/architecture/03-requ
 - `hook.ts` mutates the response after templating.
 - `helpers/*.ts` are callable from `{{ ... }}` tokens.
 
-Read more: [docs/architecture/02-conventions.md](docs/architecture/02-conventions.md)
+Read more: [docs/features/conventions.md](docs/features/conventions.md)
 
 ## Writing a Mock
 
@@ -86,7 +86,7 @@ Dynamic route example:
 }
 ```
 
-Read more: [docs/architecture/07-routing.md](docs/architecture/07-routing.md)
+Read more: [docs/features/routing.md](docs/features/routing.md)
 
 ## Templating
 
@@ -95,7 +95,7 @@ Read more: [docs/architecture/07-routing.md](docs/architecture/07-routing.md)
 - `user-{{ req.params.id }}` stringifies and embeds the value.
 - `{{ randomInt 1 100 }}` passes helper arguments as strings.
 
-Read more: [docs/architecture/04-templating.md](docs/architecture/04-templating.md)
+Read more: [docs/features/templating.md](docs/features/templating.md)
 
 ## Helpers
 
@@ -118,7 +118,7 @@ export default function randomInt(min: string, max: string): number {
 }
 ```
 
-Read more: [docs/architecture/06-helpers.md](docs/architecture/06-helpers.md)
+Read more: [docs/features/helpers.md](docs/features/helpers.md)
 
 ## Hooks
 
@@ -139,11 +139,11 @@ export default hook;
 
 Use a hook when you need conditional logic or response mutation that would be awkward in `response.json` alone.
 
-Read more: [docs/architecture/05-hooks.md](docs/architecture/05-hooks.md)
+Read more: [docs/features/hooks.md](docs/features/hooks.md)
 
 ## Stateful Mocks
 
-Phase 2 adds a shared in-memory DB seeded from `db/*.json`.
+Smocker ships with a small in-memory DB seeded from `db/*.json`.
 
 ```json
 // db/users.json
@@ -193,7 +193,7 @@ curl localhost:3000/users
 
 Persistence stays opt-in through `mock.config.ts -> db.persist`.
 
-Read more: [docs/architecture/11-database.md](docs/architecture/11-database.md)
+Read more: [docs/features/database.md](docs/features/database.md)
 
 ## Record Mode
 
@@ -216,7 +216,7 @@ record: {
 
 Only JSON upstream responses are recorded.
 
-Read more: [docs/architecture/08-proxy-and-recorder.md](docs/architecture/08-proxy-and-recorder.md)
+Read more: [docs/features/proxy-and-recorder.md](docs/features/proxy-and-recorder.md)
 
 ## Configuration Reference
 
@@ -254,7 +254,7 @@ Environment overrides:
 - `BASE_URL`
 - `RECORD=1`
 
-Read more: [docs/architecture/09-configuration.md](docs/architecture/09-configuration.md)
+Read more: [docs/reference/configuration.md](docs/reference/configuration.md)
 
 ## Library Use
 
@@ -267,7 +267,7 @@ const server = await startServer({ port: 4000 });
 await server.stop();
 ```
 
-Read more: [docs/architecture/10-public-api.md](docs/architecture/10-public-api.md)
+Read more: [docs/reference/api.md](docs/reference/api.md)
 
 ## CLI Reference
 
@@ -290,11 +290,11 @@ Flags:
 
 `--base-url` applies to both `serve` and `check`, which makes it easy to point the checker at a different backend without editing `mock.config.ts`.
 
-Read more: [docs/architecture/10-public-api.md](docs/architecture/10-public-api.md)
+Read more: [docs/reference/api.md](docs/reference/api.md)
 
 ## OpenAPI Checker
 
-Phase 3 adds a CLI checker that compares your OpenAPI spec against:
+Smocker ships with a CLI checker that compares your OpenAPI spec against:
 
 - the local mocks under `endpoints/`
 - the real backend at `baseUrl`
@@ -342,11 +342,8 @@ openapi: {
 
 Output is text-only in v1.
 
-Read more: [docs/architecture/12-openapi-checker.md](docs/architecture/12-openapi-checker.md)
+Read more: [docs/features/openapi-checker.md](docs/features/openapi-checker.md)
 
-## Roadmap
+## Documentation
 
-- Shared in-memory DB.
-- OpenAPI checker.
-
-See the implementation roadmap in [docs/README.md](docs/README.md).
+Full docs live in [docs/README.md](docs/README.md).
