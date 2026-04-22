@@ -4,7 +4,7 @@ Smocker is configured via a single TypeScript file at the project root:
 `mock.config.ts` (D-018). TypeScript was chosen over JSON for type safety,
 auto-completion, and the ability to express RegExps and inline functions.
 
-## Full Schema (Phase 1)
+## Full Schema
 
 ```ts
 export interface Config {
@@ -32,9 +32,8 @@ export interface Config {
     overwrite?: boolean;                     // default false
   };
 
-  // Reserved for future phases (no-op in Phase 1)
-  db?: DbConfig;          // Phase 2
-  openapi?: OpenApiConfig;// Phase 3
+  db?: DbConfig;
+  openapi?: OpenApiConfig;
 }
 
 export default function defineConfig(c: Config): Config { return c; }
@@ -104,8 +103,8 @@ interface DbConfig {
 }
 ```
 
-In Phase 1 the field is accepted but unused; emitting a warning helps users
-realize it isn't wired yet.
+Phase 2 wires this field into startup, hooks, templates, and optional
+persistence.
 
 ### `openapi` (Phase 3 — D-026)
 
@@ -122,7 +121,7 @@ interface OpenApiConfig {
 }
 ```
 
-In Phase 1 the field is accepted but unused.
+Phase 3 wires this field into `smocker check api|mocks|all`.
 
 ## Loading Algorithm
 

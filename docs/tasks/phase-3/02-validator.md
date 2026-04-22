@@ -1,7 +1,7 @@
 # Task T-3.02: Validator
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Wrap Ajv to validate response payloads against an OpenAPI response schema

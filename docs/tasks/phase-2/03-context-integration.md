@@ -1,7 +1,7 @@
 # Task T-2.03: Context Integration
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Plumb the DB instance through the request lifecycle so hooks see

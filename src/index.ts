@@ -3,6 +3,14 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+import { runApiChecker } from './checker/api-checker';
+import { runMockChecker } from './checker/mock-checker';
+import { createReport, printReport } from './checker/reporter';
+import { loadSampleOverrides } from './checker/sample-generator';
+import { loadSpec } from './checker/spec-loader';
+import { createDb } from './db';
+import { loadSeeds } from './db-loader';
+import { createDbPersister } from './db-persist';
 import { clearHookCache } from './hook-runner';
 import { loadHelpers } from './helpers-loader';
 import { createProxy } from './proxy';
@@ -45,6 +53,7 @@ interface RuntimeState {
   responder: ReturnType<typeof createResponder>;
   proxy: ReturnType<typeof createProxy>;
   recorder: ReturnType<typeof createRecorder>;
+  db: ReturnType<typeof createDb>;
   helperNames: string[];
   reloadToken: number;
 }
@@ -89,6 +98,7 @@ export async function startServer(opts: StartOptions = {}): Promise<ServerHandle
     port,
     url: `http://localhost:${port}`,
     async stop(): Promise<void> {
+      await runtime.db.flush();
       server.stop(true);
     },
     async reload(): Promise<void> {
@@ -99,6 +109,20 @@ export async function startServer(opts: StartOptions = {}): Promise<ServerHandle
 }
 
 async function buildRuntime(cfg: ResolvedConfig, reloadToken: number): Promise<RuntimeState> {
+  const persister = cfg.db.persist
+    ? createDbPersister({ dir: cfg.db.dir, debounceMs: 100 })
+    : null;
+  const db = createDb({
+    autoId: cfg.db.autoId,
+    onMutation: persister
+      ? (name, items) => {
+          persister.schedule(name, items);
+        }
+      : undefined,
+    onFlush: persister ? () => persister.flush() : undefined,
+  });
+  await loadSeeds(db, cfg.db.dir);
+
   const helpers = await loadHelpers(cfg.helpersDir, { cacheBust: String(reloadToken) });
   const engine = createEngine(helpers);
   const router = await buildRouter(cfg.endpointsDir);
@@ -108,9 +132,10 @@ async function buildRuntime(cfg: ResolvedConfig, reloadToken: number): Promise<R
     cfg,
     router,
     engine,
-    responder: createResponder(cfg, engine),
+    responder: createResponder(cfg, engine, db),
     proxy: createProxy(cfg.baseUrl),
     recorder: createRecorder(cfg.record),
+    db,
     helperNames: [...helpers.keys()].sort(),
     reloadToken,
   };
@@ -194,11 +219,12 @@ export async function runCli(argv: string[]): Promise<number | undefined> {
   }
 
   if (args.command === 'check') {
-    console.log(
-      '[smocker] OpenAPI checker is planned for Phase 3 and not yet implemented.\n' +
-        '          See docs/architecture/12-openapi-checker.md',
-    );
-    return 0;
+    try {
+      return await runCheckCommand(args);
+    } catch (error) {
+      console.error(`[smocker] ${error instanceof Error ? error.message : String(error)}`);
+      return 1;
+    }
   }
 
   try {
@@ -302,6 +328,45 @@ Options:
   --fail                          (check) Exit non-zero on mismatch
   -h, --help                      Show help
   -v, --version                   Show version`);
+}
+
+async function runCheckCommand(args: CliArgs): Promise<number> {
+  const config = applyStartOptions(await loadConfig(args.config), {
+    config: args.config,
+    port: args.port,
+    baseUrl: args.baseUrl,
+    record: args.record,
+  });
+  if (!config.openapi?.spec) {
+    console.error('[smocker] openapi.spec is not configured in mock.config.ts');
+    return 1;
+  }
+
+  const spec = await loadSpec(config.openapi.spec);
+  const overrides = await loadSampleOverrides(config.openapi.check.sampleData);
+  const report = createReport();
+
+  if (args.subcommand === 'api' || args.subcommand === 'all') {
+    await runApiChecker(spec, config, overrides, report);
+  }
+
+  if (args.subcommand === 'mocks' || args.subcommand === 'all') {
+    const router = await buildRouter(config.endpointsDir);
+    const helpers = await loadHelpers(config.helpersDir, { cacheBust: 'check' });
+    const engine = createEngine(helpers);
+    const db = createDb({ autoId: config.db.autoId });
+    await loadSeeds(db, config.db.dir);
+    await runMockChecker(spec, router, engine, config, overrides, report, db);
+  }
+
+  printReport(report);
+
+  const failOnMismatch = args.fail || config.openapi.check.failOnMismatch;
+  if (failOnMismatch && report.totals.mismatches > 0) {
+    return 3;
+  }
+
+  return 0;
 }
 
 async function readVersion(): Promise<string> {

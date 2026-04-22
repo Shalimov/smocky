@@ -1,7 +1,7 @@
 # Task T-3.06: Reporter
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Render the structured report from the API and mock checkers into

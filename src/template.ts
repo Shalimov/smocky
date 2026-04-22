@@ -86,7 +86,7 @@ async function resolveExpression(
   }
 
   if (head.startsWith('db.') || head === 'db') {
-    throw new TemplateError('db.* is reserved (Phase 2)');
+    return resolveDbExpression(head, args, ctx);
   }
 
   const helper = helpers.get(head);
@@ -100,6 +100,33 @@ async function resolveExpression(
     throw new TemplateError(`helper "${head}" failed: ${toErrorMessage(error)}`, {
       cause: error,
     });
+  }
+}
+
+function resolveDbExpression(head: string, args: string[], ctx: Ctx): unknown {
+  if (!ctx.db) {
+    throw new TemplateError('db unavailable');
+  }
+
+  const [, collectionName, method] = head.split('.');
+  if (!collectionName || !method) {
+    throw new TemplateError(`invalid db expression "${head}"`);
+  }
+
+  const collection = ctx.db.collection(collectionName);
+  switch (method) {
+    case 'all':
+      return collection.all();
+    case 'find':
+      return collection.find(resolveDbArgument(args[0], ctx));
+    case 'where':
+      return collection.where(parseDbWhereArgs(args, ctx));
+    case 'insert':
+    case 'update':
+    case 'remove':
+      throw new TemplateError(`db.${collectionName}.${method}: mutations are not allowed in templates - use a hook`);
+    default:
+      throw new TemplateError(`db.${collectionName}.${method} not supported in templates`);
   }
 }
 
@@ -174,4 +201,51 @@ function unescapeToken(value: string): string {
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function parseDbWhereArgs(args: string[], ctx: Ctx): Record<string, unknown> {
+  const query: Record<string, unknown> = {};
+
+  for (const arg of args) {
+    const [rawKey, ...rawValueParts] = arg.split('=');
+    const key = rawKey?.trim();
+    if (!key || rawValueParts.length === 0) {
+      throw new TemplateError(`invalid db.where argument "${arg}"`);
+    }
+
+    query[key] = coerceDbValue(resolveDbArgument(rawValueParts.join('='), ctx));
+  }
+
+  return query;
+}
+
+function resolveDbArgument(arg: string | undefined, ctx: Ctx): string {
+  if (!arg) {
+    return '';
+  }
+
+  if (arg.startsWith('req.')) {
+    const resolved = resolveRequestPath(arg.slice(4), ctx);
+    return resolved === undefined || resolved === null ? '' : String(resolved);
+  }
+
+  return arg;
+}
+
+function coerceDbValue(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  if (value !== '' && /^-?\d+(?:\.\d+)?$/.test(value)) {
+    return Number(value);
+  }
+
+  return value;
 }

@@ -1,7 +1,7 @@
 # Task T-3.05: Mock Checker
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 For every spec operation, find the corresponding mock in `endpoints/` and
@@ -35,9 +35,9 @@ for each op in spec:
     else {
       schema = op.responses[String(block.status)]?.content?...?.schema;
       if (schema) {
-        // Render templates with a stub ctx (no req.* required fields)
-        const rendered = await engine.render(block.body, { req: stubReq() });
-        const issues = validate(schema, rendered);
+        // Resolve the mock the same way the server does, including hook mutations.
+        const resolved = await resolveMockResponse(match, stubReq(), engine, db);
+        const issues = validate(schema, resolved.body);
         if (issues.length) report.add('schema-mismatch');
       }
     }

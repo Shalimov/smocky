@@ -1,8 +1,6 @@
 # 12 — OpenAPI Checker (Phase 3)
 
-> **Status:** Designed, deferred. Phase 1 reserves the `smocker check`
-> CLI subcommand and the `openapi` config namespace so this phase ships
-> non-breaking.
+> **Status:** Implemented.
 
 The OpenAPI checker is a **separate CLI command** (D-026 — never a runtime
 middleware) that detects drift between three artifacts:
@@ -144,15 +142,12 @@ smocker check all    [--fail] [--config <path>]
 `openapi.check.skipPaths` accepts strings (prefix match) and RegExps.
 Useful for excluding internal/healthcheck endpoints.
 
-## Forward-Compat From Phase 1
+## Notes
 
-Phase 1 ships:
-
-- `smocker check` CLI subcommand stub printing a "not yet implemented"
-  notice (D-033).
-- `openapi` field accepted but ignored in `mock.config.ts`.
-- Router internals exported (or re-exportable) to enable later reuse by
-  `mock-checker.ts`.
+- `smocker check mocks` validates the fully resolved mock response after
+  templating and hook execution so hook-mutated status codes and bodies are
+  checked the same way the running server behaves.
+- `--base-url` can override `mock.config.ts` for `check api` and `check all`.
 
 ## References
 

@@ -1,11 +1,7 @@
 {
   "GET": {
     "status": 200,
-    "body": {
-      "id": "{{ req.params.id }}",
-      "name": "User-{{ req.params.id }}",
-      "luckyNumber": "{{ randomInt 1 100 }}"
-    }
+    "body": "{{ db.users.find req.params.id }}"
   },
   "DELETE": {
     "status": 204,

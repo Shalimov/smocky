@@ -1,7 +1,7 @@
 # Task T-2.07: Examples & Docs
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Update the example scaffold and README with DB-backed mocks so users can

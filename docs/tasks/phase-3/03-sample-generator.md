@@ -1,7 +1,7 @@
 # Task T-3.03: Sample Generator
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Synthesize request bodies (and path/query params when needed) from

@@ -1,7 +1,7 @@
 # Task T-2.02: DB Loader & Seeding
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Discover seed files in `db/`, parse each as a JSON array, and hydrate the

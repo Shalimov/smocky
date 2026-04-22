@@ -1,7 +1,7 @@
 # Task T-3.04: API Checker
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Iterate every operation in the spec, send a request to the real backend,

@@ -141,6 +141,60 @@ Use a hook when you need conditional logic or response mutation that would be aw
 
 Read more: [docs/architecture/05-hooks.md](docs/architecture/05-hooks.md)
 
+## Stateful Mocks
+
+Phase 2 adds a shared in-memory DB seeded from `db/*.json`.
+
+```json
+// db/users.json
+[
+  { "id": "u1", "name": "Alice", "active": true },
+  { "id": "u2", "name": "Bob", "active": false }
+]
+```
+
+Templates can read from the DB:
+
+```json
+{
+  "GET": {
+    "body": {
+      "users": "{{ db.users.all }}",
+      "activeUsers": "{{ db.users.where active=true }}"
+    }
+  }
+}
+```
+
+Hooks can mutate it:
+
+```ts
+import type { Hook } from 'smocker';
+
+const hook: Hook = (req, res, ctx) => {
+  const users = ctx.db!.collection('users');
+
+  if (req.method === 'POST') {
+    res.body = users.insert(req.body as { name: string; active?: boolean });
+    res.status = 201;
+  }
+};
+
+export default hook;
+```
+
+Typical flow:
+
+```bash
+curl localhost:3000/users
+curl -X POST localhost:3000/users -H 'content-type: application/json' -d '{"name":"Cara","active":true}'
+curl localhost:3000/users
+```
+
+Persistence stays opt-in through `mock.config.ts -> db.persist`.
+
+Read more: [docs/architecture/11-database.md](docs/architecture/11-database.md)
+
 ## Record Mode
 
 Enable recording for a run:
@@ -186,6 +240,11 @@ export default defineConfig({
     exclude: [],
     overwrite: false,
   },
+  db: {
+    dir: './db',
+    persist: false,
+    autoId: 'uuid',
+  },
 });
 ```
 
@@ -225,16 +284,69 @@ Flags:
 - `--port <n>`
 - `--base-url <url>`
 - `--record`
+- `--fail`
 - `--help`
 - `--version`
 
-`smocker check` is reserved in Phase 1 and currently prints a stub message.
+`--base-url` applies to both `serve` and `check`, which makes it easy to point the checker at a different backend without editing `mock.config.ts`.
 
 Read more: [docs/architecture/10-public-api.md](docs/architecture/10-public-api.md)
 
+## OpenAPI Checker
+
+Phase 3 adds a CLI checker that compares your OpenAPI spec against:
+
+- the local mocks under `endpoints/`
+- the real backend at `baseUrl`
+
+Quick start:
+
+```bash
+bun run src/index.ts check mocks
+bun run src/index.ts check api --base-url http://127.0.0.1:3000
+bun run src/index.ts check all --fail --base-url http://127.0.0.1:3000
+```
+
+The bundled example config points `baseUrl` at `https://jsonplaceholder.typicode.com`, which does not match the bundled `/users` spec. For a green end-to-end example, run the local server and point `check api` back at Smocker itself:
+
+```bash
+bun run src/index.ts serve --base-url ""
+bun run src/index.ts check api --base-url http://127.0.0.1:3000
+```
+
+Sample overrides live in `openapi.check.sampleData` and are keyed by either `operationId` or `<METHOD> <path>`:
+
+```json
+{
+  "POST /users": {
+    "name": "Example User",
+    "active": true
+  },
+  "createUser": {
+    "name": "Example User",
+    "active": true
+  }
+}
+```
+
+You can skip endpoints with `openapi.check.skipPaths`:
+
+```ts
+openapi: {
+  spec: './examples/openapi.json',
+  check: {
+    skipPaths: ['/internal/', /^\/health/],
+  },
+}
+```
+
+Output is text-only in v1.
+
+Read more: [docs/architecture/12-openapi-checker.md](docs/architecture/12-openapi-checker.md)
+
 ## Roadmap
 
-- Phase 2: shared in-memory DB.
-- Phase 3: OpenAPI checker.
+- Shared in-memory DB.
+- OpenAPI checker.
 
 See the implementation roadmap in [docs/README.md](docs/README.md).

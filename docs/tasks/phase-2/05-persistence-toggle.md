@@ -1,7 +1,7 @@
 # Task T-2.05: Persistence Toggle
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Implement opt-in disk persistence for the DB. When `db.persist: true`,

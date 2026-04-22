@@ -34,18 +34,16 @@ Global options:
 | 2    | Runtime error (e.g., port in use)                |
 | 3    | `check` found mismatches and `--fail` is set     |
 
-### Phase 1 Stub for `check` (D-033)
+### `check`
 
-Until Phase 3 lands, `smocker check ...` prints a friendly notice and exits
-with code 0:
+`smocker check` is implemented in Phase 3 and supports:
 
-```
-$ smocker check api
-[smocker] OpenAPI checker is planned for Phase 3 and not yet implemented.
-          See docs/architecture/12-openapi-checker.md
-```
+- `smocker check api`
+- `smocker check mocks`
+- `smocker check all`
 
-Reserving the subcommand keeps the CLI surface stable across phases.
+`--base-url` overrides the configured upstream for check commands the same way
+it does for `serve`.
 
 ## Library
 
@@ -123,5 +121,5 @@ not stable across minor versions.
 
 ## References
 
-- D-020, D-033
+- D-020, D-026, D-027, D-031, D-033
 - [`09-configuration.md`](09-configuration.md), [`12-openapi-checker.md`](12-openapi-checker.md)

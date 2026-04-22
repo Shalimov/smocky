@@ -1,4 +1,5 @@
 import { HookError, runHook } from './hook-runner';
+import type { Db } from './db';
 import type { MatchResult } from './router';
 import { TemplateError, type Engine } from './template';
 import type {
@@ -14,28 +15,41 @@ export interface Responder {
   respond(match: MatchResult, req: MockRequest): Promise<Response>;
 }
 
-export function createResponder(cfg: ResolvedConfig, engine: Engine): Responder {
+export async function resolveMockResponse(
+  match: MatchResult,
+  req: MockRequest,
+  engine: Engine,
+  db?: Db,
+): Promise<MockResponse | null> {
+  const definition = (await Bun.file(match.route.responseFile).json()) as ResponseDefinition;
+  const block = getMethodBlock(definition, req.method);
+  if (!block) {
+    return null;
+  }
+
+  const res: MockResponse = {
+    status: block.status ?? 200,
+    headers: normalizeHeaders(block.headers ?? {}),
+    body: block.body ?? {},
+    delay: Math.max(0, block.delay ?? 0),
+  };
+  const ctx: Ctx = { req, db };
+
+  res.body = await engine.render(res.body, ctx);
+  res.headers = await renderHeaders(res.headers, engine, ctx);
+
+  await runHook(match.route.hookFile, req, res, ctx);
+  return res;
+}
+
+export function createResponder(cfg: ResolvedConfig, engine: Engine, db?: Db): Responder {
   return {
     async respond(match: MatchResult, req: MockRequest): Promise<Response> {
       try {
-        const definition = (await Bun.file(match.route.responseFile).json()) as ResponseDefinition;
-        const block = getMethodBlock(definition, req.method);
-        if (!block) {
+        const res = await resolveMockResponse(match, req, engine, db);
+        if (!res) {
           return methodNotAllowed(match, req.method);
         }
-
-        const res: MockResponse = {
-          status: block.status ?? 200,
-          headers: normalizeHeaders(block.headers ?? {}),
-          body: block.body ?? {},
-          delay: Math.max(0, block.delay ?? 0),
-        };
-        const ctx: Ctx = { req };
-
-        res.body = await engine.render(res.body, ctx);
-        res.headers = await renderHeaders(res.headers, engine, ctx);
-
-        await runHook(match.route.hookFile, req, res, ctx);
 
         const finalHeaders = {
           ...cfg.globalHeaders,

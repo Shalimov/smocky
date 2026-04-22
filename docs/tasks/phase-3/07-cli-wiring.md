@@ -1,7 +1,7 @@
 # Task T-3.07: CLI Wiring
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Replace the Phase 1 `smocker check` stub with the real implementation,

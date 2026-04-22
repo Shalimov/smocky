@@ -1,3 +1,5 @@
+import type { Db } from './db';
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 
@@ -24,6 +26,7 @@ export interface MockResponse {
 
 export interface Ctx {
   req: MockRequest;
+  db?: Db;
 }
 
 export type Hook = (
@@ -58,6 +61,12 @@ export interface DbConfig {
   autoId?: 'uuid';
 }
 
+export interface ResolvedDbConfig {
+  dir: string;
+  persist: boolean;
+  autoId: 'uuid';
+}
+
 export interface OpenApiConfig {
   spec: string;
   check?: {
@@ -66,6 +75,17 @@ export interface OpenApiConfig {
     skipPaths?: RecordRule[];
     sampleData?: string;
     failOnMismatch?: boolean;
+  };
+}
+
+export interface ResolvedOpenApiConfig {
+  spec: string;
+  check: {
+    timeout: number;
+    auth?: { headers?: Record<string, string> };
+    skipPaths: RecordRule[];
+    sampleData?: string;
+    failOnMismatch: boolean;
   };
 }
 
@@ -87,8 +107,8 @@ export interface ResolvedConfig {
   helpersDir: string;
   globalHeaders: Record<string, string>;
   record: ResolvedRecordConfig;
-  db?: DbConfig;
-  openapi?: OpenApiConfig;
+  db: ResolvedDbConfig;
+  openapi?: ResolvedOpenApiConfig;
 }
 
 export interface ResponseMethodBlock {

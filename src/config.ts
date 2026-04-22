@@ -2,7 +2,13 @@ import { access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import type { Config, ResolvedConfig, ResolvedRecordConfig } from './types';
+import type {
+  Config,
+  ResolvedConfig,
+  ResolvedDbConfig,
+  ResolvedOpenApiConfig,
+  ResolvedRecordConfig,
+} from './types';
 
 const DEFAULT_RECORD: ResolvedRecordConfig = {
   enabled: false,
@@ -10,6 +16,12 @@ const DEFAULT_RECORD: ResolvedRecordConfig = {
   include: [],
   exclude: [],
   overwrite: false,
+};
+
+const DEFAULT_DB: ResolvedDbConfig = {
+  dir: './db',
+  persist: false,
+  autoId: 'uuid',
 };
 
 const DEFAULTS = {
@@ -42,6 +54,8 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
   }
 
   const record = mergeRecordConfig(userConfig.record, userConfig.endpointsDir);
+  const db = mergeDbConfig(userConfig.db);
+  const openapi = mergeOpenApiConfig(userConfig.openapi);
   const config: ResolvedConfig = {
     port: userConfig.port ?? DEFAULTS.port,
     baseUrl: userConfig.baseUrl ?? DEFAULTS.baseUrl,
@@ -52,20 +66,14 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
       ...(userConfig.globalHeaders ?? {}),
     }),
     record,
-    db: userConfig.db,
-    openapi: userConfig.openapi,
+    db,
+    openapi,
   };
 
   applyEnvOverrides(config);
   config.record.outputDir = resolve(cwd, config.record.outputDir);
+  config.db.dir = resolve(cwd, config.db.dir);
   validateConfig(config);
-
-  if (config.db) {
-    console.warn('[smocker] `db` config is reserved for Phase 2 and ignored in Phase 1.');
-  }
-  if (config.openapi) {
-    console.warn('[smocker] `openapi` config is reserved for Phase 3 and ignored in Phase 1.');
-  }
 
   return config;
 }
@@ -77,6 +85,42 @@ function mergeRecordConfig(record: Config['record'], endpointsDir?: string): Res
     include: record?.include ? [...record.include] : [...DEFAULT_RECORD.include],
     exclude: record?.exclude ? [...record.exclude] : [...DEFAULT_RECORD.exclude],
     overwrite: record?.overwrite ?? DEFAULT_RECORD.overwrite,
+  };
+}
+
+function mergeDbConfig(db: Config['db']): ResolvedDbConfig {
+  return {
+    dir: db?.dir ?? DEFAULT_DB.dir,
+    persist: db?.persist ?? DEFAULT_DB.persist,
+    autoId: db?.autoId ?? DEFAULT_DB.autoId,
+  };
+}
+
+function mergeOpenApiConfig(openapi: Config['openapi']): ResolvedOpenApiConfig | undefined {
+  if (!openapi) {
+    return undefined;
+  }
+
+  if (!openapi.spec) {
+    throw new Error('[smocker] openapi.spec is required when openapi is set');
+  }
+
+  const timeout = openapi.check?.timeout ?? 5000;
+  if (timeout <= 0) {
+    throw new Error('[smocker] openapi.check.timeout must be > 0');
+  }
+
+  return {
+    spec: resolve(process.cwd(), openapi.spec),
+    check: {
+      timeout,
+      auth: openapi.check?.auth
+        ? { headers: normalizeHeaders(openapi.check.auth.headers ?? {}) }
+        : undefined,
+      skipPaths: openapi.check?.skipPaths ? [...openapi.check.skipPaths] : [],
+      sampleData: openapi.check?.sampleData ? resolve(process.cwd(), openapi.check.sampleData) : undefined,
+      failOnMismatch: openapi.check?.failOnMismatch ?? false,
+    },
   };
 }
 

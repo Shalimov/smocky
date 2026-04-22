@@ -1,7 +1,7 @@
 # Task T-3.09: Docs & Examples
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Update the README and supply a minimal `openapi.json` + `openapi-samples.json`
@@ -43,11 +43,11 @@ Closes Phase 3.
   `docs/architecture/13-out-of-scope.md`).
 
 ## Acceptance Criteria
-- [ ] `smocker check mocks` runs against the example spec and produces a
+- [x] `smocker check mocks` runs against the example spec and produces a
       report.
-- [ ] `smocker check api` runs against the configured `baseUrl` and
+- [x] `smocker check api` runs against a configured `baseUrl` and
       produces a report.
-- [ ] README section is self-contained.
+- [x] README section is self-contained.
 
 ## Out of Scope
 - Generating richer example specs.

@@ -13,4 +13,18 @@ export default defineConfig({
   record: {
     enabled: false,
   },
+  db: {
+    dir: './db',
+    persist: false,
+    autoId: 'uuid',
+  },
+  openapi: {
+    spec: './examples/openapi.json',
+    check: {
+      timeout: 5000,
+      sampleData: './examples/openapi-samples.json',
+      skipPaths: [],
+      failOnMismatch: false,
+    },
+  },
 });

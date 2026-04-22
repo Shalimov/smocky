@@ -1,11 +1,22 @@
 # Task T-2.06: Auto-CRUD Decision
 
 ## Status
-- [ ] Not started — open question
+- [x] Deferred (2026-04-22)
 
 ## Goal
 Decide whether (and how) to auto-generate REST handlers for endpoint folders
 that match a DB collection but have no `response.json`.
+
+## Decision
+Deferred on 2026-04-22.
+
+Phase 2 shipped the explicit DB API, template reads, hook mutations, seeding,
+and optional persistence without adding auto-generated routes. This keeps the
+runtime predictable and aligned with the existing convention that routes are
+declared by files under `endpoints/`.
+
+If revisited later, add a new follow-up task instead of silently extending the
+current Phase 2 scope.
 
 ## Context
 Tracked decision **D-034** (Open / Deferred). This task is a decision-making

@@ -28,14 +28,11 @@ describe('loadConfig', () => {
     });
   });
 
-  test('merges config, lowercases global headers, applies env overrides, and warns for reserved fields', async () => {
+  test('merges config, lowercases global headers, applies env overrides, and resolves active config sections', async () => {
     await withTempDir('smocker-config-merge', async (dir) => {
       const configPath = join(dir, 'mock.config.ts');
       const endpointsDir = join(dir, 'api-mocks');
       const helpersDir = join(dir, 'helpers-src');
-      const warnings: string[] = [];
-      const originalWarn = console.warn;
-
       await writeText(
         configPath,
         `export default {
@@ -56,32 +53,25 @@ describe('loadConfig', () => {
 };\n`,
       );
 
-      console.warn = (message?: unknown) => {
-        warnings.push(String(message));
-      };
-
       process.env.PORT = '4567';
       process.env.BASE_URL = 'https://env.example.com';
       process.env.RECORD = 'true';
 
-      try {
-        const config = await loadConfig(configPath);
+      const config = await loadConfig(configPath);
 
-        expect(config.port).toBe(4567);
-        expect(config.baseUrl).toBe('https://env.example.com');
-        expect(config.endpointsDir).toBe(endpointsDir);
-        expect(config.helpersDir).toBe(helpersDir);
-        expect(config.globalHeaders).toEqual({ 'x-test': 'ok' });
-        expect(config.record.enabled).toBe(true);
-        expect(config.record.outputDir).toBe(endpointsDir);
-        expect(config.record.include).toEqual(['/api']);
-        expect(config.record.exclude).toHaveLength(1);
-        expect(config.record.exclude[0]).toBeInstanceOf(RegExp);
-        expect(config.record.overwrite).toBe(true);
-        expect(warnings).toHaveLength(2);
-      } finally {
-        console.warn = originalWarn;
-      }
+      expect(config.port).toBe(4567);
+      expect(config.baseUrl).toBe('https://env.example.com');
+      expect(config.endpointsDir).toBe(endpointsDir);
+      expect(config.helpersDir).toBe(helpersDir);
+      expect(config.globalHeaders).toEqual({ 'x-test': 'ok' });
+      expect(config.record.enabled).toBe(true);
+      expect(config.record.outputDir).toBe(endpointsDir);
+      expect(config.record.include).toEqual(['/api']);
+      expect(config.record.exclude).toHaveLength(1);
+      expect(config.record.exclude[0]).toBeInstanceOf(RegExp);
+      expect(config.record.overwrite).toBe(true);
+      expect(config.db.persist).toBe(true);
+      expect(config.openapi?.spec).toBe(resolve(process.cwd(), 'openapi.json'));
     });
   });
 

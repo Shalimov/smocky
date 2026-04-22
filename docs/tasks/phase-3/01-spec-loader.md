@@ -1,7 +1,7 @@
 # Task T-3.01: Spec Loader
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Load an OpenAPI 3.x specification (JSON or YAML, file or URL) and fully

@@ -1,7 +1,7 @@
 # Task T-3.08: Config Extension
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Activate the `openapi` config field reserved in Phase 1 — moving it from

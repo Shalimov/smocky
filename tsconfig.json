@@ -6,7 +6,7 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    "types": ["bun-types"],
+    "types": ["bun-types", "node"],
     "lib": ["ESNext", "DOM"],
     "resolveJsonModule": true,
     "isolatedModules": true,

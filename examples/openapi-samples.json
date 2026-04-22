@@ -1,0 +1,10 @@
+{
+  "POST /users": {
+    "name": "Example User",
+    "active": true
+  },
+  "createUser": {
+    "name": "Example User",
+    "active": true
+  }
+}

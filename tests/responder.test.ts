@@ -30,6 +30,11 @@ const baseConfig: ResolvedConfig = {
     exclude: [],
     overwrite: false,
   },
+  db: {
+    dir: '/unused/db',
+    persist: false,
+    autoId: 'uuid',
+  },
 };
 
 describe('createResponder', () => {

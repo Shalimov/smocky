@@ -1,7 +1,7 @@
 # Task T-2.04: Template DB Access
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Lift the Phase 1 guard on `db.*` template tokens and implement the

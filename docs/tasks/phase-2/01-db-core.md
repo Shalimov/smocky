@@ -1,7 +1,7 @@
 # Task T-2.01: DB Core
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Implement the in-memory collection store and its query/mutation API per
