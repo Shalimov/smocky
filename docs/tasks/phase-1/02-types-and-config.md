@@ -1,7 +1,7 @@
 # Task T-1.02: Types & Config Loader
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Define the core public TypeScript types (`Config`, `MockRequest`,

@@ -1,7 +1,7 @@
 # Task T-1.05: Router
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Walk `endpointsDir` at startup, build a route table, and provide a

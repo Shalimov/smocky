@@ -1,7 +1,7 @@
 # Task T-1.12: Example Scaffold
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Provide two working endpoint examples and two helper examples so users have

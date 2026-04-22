@@ -1,7 +1,7 @@
 # Task T-1.13: README
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Write a top-level `README.md` that gives users a 5-minute onboarding to

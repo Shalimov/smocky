@@ -1,7 +1,7 @@
 # Task T-1.10: Server Bootstrap
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Wire all Phase 1 modules together behind `Bun.serve` and expose
@@ -90,9 +90,10 @@ async function fetch(raw: Request): Promise<Response> {
 ```ts
 async function reload() {
   helpers = await loadHelpers(cfg.helpersDir);
-  engine.replaceHelpers(helpers);
+  engine = createEngine(helpers);
+  responder = createResponder(cfg, engine);
   router = await buildRouter(cfg.endpointsDir);
-  hookCache.clear();
+  clearHookCache();
 }
 ```
 
@@ -107,12 +108,12 @@ The actual CLI parsing lives in T-1.11.
 
 ### Startup Log
 ```
-🥒 smocker
-   port:       3000
-   baseUrl:    https://api.production.com
-   endpoints:  4 routes (2 static, 2 dynamic)
-   helpers:    3 (guid, randomInt, now)
-   record:     disabled
+[smocker]
+  port:      3000
+  baseUrl:   https://api.production.com
+  endpoints: 4 routes (2 static, 2 dynamic)
+  helpers:   guid, randomInt, now
+  record:    disabled
 ```
 
 ## Acceptance Criteria

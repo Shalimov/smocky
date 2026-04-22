@@ -1,7 +1,7 @@
 # Task T-1.08: Proxy
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Implement the transparent proxy that forwards unmatched requests to
@@ -39,12 +39,6 @@ const HOP_BY_HOP = [
 ];
 
 async function forward(req: Request): Promise<Response> {
-  if (!baseUrl) {
-    return new Response(
-      JSON.stringify({ error: 'NoBaseUrl', message: 'baseUrl not configured' }),
-      { status: 502, headers: { 'content-type': 'application/json' } },
-    );
-  }
   const inUrl = new URL(req.url);
   const upstream = new URL(inUrl.pathname + inUrl.search, baseUrl);
 
@@ -75,6 +69,11 @@ async function forward(req: Request): Promise<Response> {
   }
 }
 ```
+
+### No `baseUrl`
+When `baseUrl` is unset, server bootstrap handles unmatched routes before the
+proxy is invoked and returns `404`. The proxy module itself assumes it was
+constructed with a usable upstream URL.
 
 ### Body Streaming
 Bun's `fetch` accepts a `ReadableStream` body — passing `req.body`

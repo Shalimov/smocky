@@ -1,7 +1,7 @@
 # Task T-1.06: Hook Runner
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Dynamically import an endpoint's `hook.ts` (if present), cache the module,

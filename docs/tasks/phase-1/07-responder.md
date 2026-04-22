@@ -1,7 +1,7 @@
 # Task T-1.07: Responder
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Compose the per-request pipeline that turns a matched route into a final

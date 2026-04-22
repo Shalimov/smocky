@@ -1,0 +1,14 @@
+{
+  "GET": {
+    "status": 200,
+    "body": {
+      "id": "{{ req.params.id }}",
+      "name": "User-{{ req.params.id }}",
+      "luckyNumber": "{{ randomInt 1 100 }}"
+    }
+  },
+  "DELETE": {
+    "status": 204,
+    "body": {}
+  }
+}

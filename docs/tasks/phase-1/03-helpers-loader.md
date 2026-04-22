@@ -1,7 +1,7 @@
 # Task T-1.03: Helpers Loader
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Discover all helper files in `helpersDir`, dynamically import them, and

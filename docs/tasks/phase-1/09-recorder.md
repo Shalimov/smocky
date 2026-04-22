@@ -1,7 +1,7 @@
 # Task T-1.09: Recorder
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Persist proxied responses as `response.json` stub files in the configured

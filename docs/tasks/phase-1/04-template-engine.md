@@ -1,7 +1,7 @@
 # Task T-1.04: Template Engine
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Implement the Liquid-lite template engine that walks JSON values and

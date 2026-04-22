@@ -1,7 +1,7 @@
 # Task T-1.01: Project Bootstrap
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Initialize the Smocker project with package metadata, TypeScript configuration,
@@ -44,7 +44,7 @@ dependencies — D-021).
     "start": "bun run src/index.ts serve",
     "record": "RECORD=1 bun run src/index.ts serve",
     "check:api": "bun run src/index.ts check api",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "bun x tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

@@ -1,7 +1,7 @@
 # Task T-1.11: CLI & Subcommand Stubs
 
 ## Status
-- [ ] Not started
+- [x] Complete (2026-04-22)
 
 ## Goal
 Parse CLI arguments, dispatch to `serve` or stub `check` subcommands, and

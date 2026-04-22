@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "types": ["bun-types"],
+    "lib": ["ESNext", "DOM"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "smocker": ["./src/index.ts"],
+      "smocker/types": ["./src/types.ts"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*.ts", "helpers/**/*.ts", "endpoints/**/*.ts", "mock.config.ts"]
+}

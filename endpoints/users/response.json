@@ -1,0 +1,20 @@
+{
+  "GET": {
+    "status": 200,
+    "body": {
+      "users": [
+        { "id": "{{ guid }}", "name": "Alice" },
+        { "id": "{{ guid }}", "name": "Bob" }
+      ],
+      "count": 2,
+      "filter": "{{ req.query.filter }}"
+    }
+  },
+  "POST": {
+    "status": 201,
+    "body": {
+      "id": "{{ guid }}",
+      "echo": "{{ req.body.name }}"
+    }
+  }
+}
