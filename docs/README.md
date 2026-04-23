@@ -6,14 +6,31 @@ and validate against an OpenAPI spec when you need to.
 
 > Mock surgically. Proxy everything else. Validate against the real spec.
 
-## Start Here
+## Get started in three commands
 
-- [Getting Started](getting-started.md) — install, run, write your first mock.
+```bash
+bun add -d github:YOUR_USER/smocker#v0.1.0   # install (Bun >= 1.1)
+bun smocker init                              # scaffold a project
+bun smocker serve                             # start the mock server
+```
+
+That's it — `bun smocker init` writes `smocker.config.ts`, a couple of
+example endpoints, and (optionally) a helper, a `db/` seed, and a
+`tsconfig.json`. Use `--from-openapi <spec>` to generate the entire
+endpoint tree from an OpenAPI document instead.
+
+- New here? Read **[Getting Started](getting-started.md)** for the
+  guided walkthrough — what each scaffolded file looks like and how to
+  extend it.
+- Already comfortable? Jump straight to **[`smocker init`](features/init.md)**
+  for every flag of the scaffolder, or to the [CLI reference](reference/api.md)
+  for `serve` and `check`.
 
 ## Features
 
 | Feature | What it does |
 |---|---|
+| [`smocker init`](features/init.md) | Scaffold a project blank or from an OpenAPI spec |
 | [Conventions](features/conventions.md) | Filesystem layout that drives everything |
 | [Routing](features/routing.md) | How URLs map to folders, dynamic params, precedence |
 | [Templating](features/templating.md) | `{{ }}` token syntax for dynamic responses |
@@ -25,23 +42,31 @@ and validate against an OpenAPI spec when you need to.
 
 ## Reference
 
-- [Configuration](reference/configuration.md) — full `mock.config.ts` schema
+- [Configuration](reference/configuration.md) — full `smocker.config.ts` schema
 - [CLI & Library API](reference/api.md) — `smocker` command and `startServer`
 
 ## Project Layout
 
-```
+A typical project (matching what `smocker init --examples --helpers --db`
+produces) looks like:
+
+```text
 your-project/
-├── mock.config.ts           # configuration
+├── smocker.config.ts        # configuration
 ├── endpoints/               # mocked routes
+│   ├── health/
+│   │   └── response.json
 │   └── users/
 │       ├── response.json
-│       ├── hook.ts
-│       └── _id/
+│       ├── hook.ts          # optional, for conditional logic
+│       └── _id/             # _name folders capture dynamic segments
 │           └── response.json
 ├── helpers/                 # template helpers
-│   ├── guid.ts
-│   └── randomInt.ts
+│   └── guid.ts
 └── db/                      # optional seed data
     └── users.json
 ```
+
+You can omit `helpers/` and `db/` entirely if you don't need them — the
+only required pieces are `smocker.config.ts` and at least one
+`endpoints/<path>/response.json`.

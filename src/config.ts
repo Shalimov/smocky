@@ -1,6 +1,6 @@
-import { access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { access } from 'node:fs/promises';
 
 import type {
   Config,
@@ -38,19 +38,32 @@ export function defineConfig(config: Config): Config {
 
 export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
   const cwd = process.cwd();
-  const absoluteConfigPath = resolve(cwd, configPath ?? './mock.config.ts');
-  let userConfig: Config = {};
+  const explicit = configPath !== undefined;
+  const candidates = explicit
+    ? [resolve(cwd, configPath)]
+    : [resolve(cwd, './smocker.config.ts'), resolve(cwd, './mock.config.ts')];
 
-  try {
-    await access(absoluteConfigPath);
-    const module = (await import(pathToFileURL(absoluteConfigPath).href)) as {
-      default?: Config;
-    };
-    userConfig = module.default ?? {};
-  } catch (error) {
-    if (await fileExists(absoluteConfigPath)) {
-      throw error;
+  let userConfig: Config = {};
+  let loaded = false;
+
+  for (const candidate of candidates) {
+    if (await fileExists(candidate)) {
+      const module = (await import(pathToFileURL(candidate).href)) as {
+        default?: Config;
+      };
+      userConfig = module.default ?? {};
+      loaded = true;
+      if (candidate.endsWith('mock.config.ts') && !explicit) {
+        console.warn('[smocker] mock.config.ts is deprecated; rename to smocker.config.ts');
+      }
+      break;
     }
+  }
+
+  if (!loaded && explicit) {
+    // Explicit path didn't exist; fall through with defaults to preserve
+    // backward-compatible behavior (callers that need strictness should check
+    // file existence before invoking).
   }
 
   const record = mergeRecordConfig(userConfig.record, userConfig.endpointsDir);

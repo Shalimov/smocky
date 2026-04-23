@@ -30,7 +30,7 @@ describe('loadConfig', () => {
 
   test('merges config, lowercases global headers, applies env overrides, and resolves active config sections', async () => {
     await withTempDir('smocker-config-merge', async (dir) => {
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
       const endpointsDir = join(dir, 'api-mocks');
       const helpersDir = join(dir, 'helpers-src');
       await writeText(
@@ -77,7 +77,7 @@ describe('loadConfig', () => {
 
   test('throws on invalid baseUrl', async () => {
     await withTempDir('smocker-config-invalid', async (dir) => {
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
       await writeText(
         configPath,
         `export default {

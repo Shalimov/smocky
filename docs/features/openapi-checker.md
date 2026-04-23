@@ -21,7 +21,7 @@ run on demand or in CI.
 ## Configuration
 
 ```ts
-// mock.config.ts
+// smocker.config.ts
 import { defineConfig } from 'smocker';
 
 export default defineConfig({
@@ -63,7 +63,7 @@ smocker check mocks  [--fail] [--config <path>]
 smocker check all    [--fail] [--config <path>] [--base-url <url>]
 ```
 
-`--base-url` overrides `mock.config.ts -> baseUrl` for `check api` and
+`--base-url` overrides `smocker.config.ts -> baseUrl` for `check api` and
 `check all` — handy for pointing the checker at a staging environment or
 back at Smocker itself without editing config.
 
@@ -152,24 +152,27 @@ JSON / JUnit / HTML reports are not supported.
 ### Check mocks before committing
 
 ```bash
-bun run src/index.ts check mocks --fail
+bun smocker check mocks --fail
 ```
 
 ### Compare staging to spec in CI
 
 ```bash
-bun run src/index.ts check api --base-url https://staging.example.com --fail
+bun smocker check api --base-url https://staging.example.com --fail
 ```
 
 ### Smoke-check the running mock server against itself
 
 ```bash
 # terminal 1
-bun run src/index.ts serve --base-url ""
+bun smocker serve --base-url ""
 
 # terminal 2
-bun run src/index.ts check api --base-url http://127.0.0.1:3000
+bun smocker check api --base-url http://127.0.0.1:3000
 ```
+
+> If you're working from a checkout, swap `bun smocker` for
+> `bun run src/cli/index.ts`.
 
 ## Dependencies
 

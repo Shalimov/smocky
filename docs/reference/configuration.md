@@ -1,7 +1,7 @@
 # Configuration
 
 Smocker is configured via a single TypeScript file at the project root:
-`mock.config.ts`. TypeScript was chosen over JSON for type safety,
+`smocker.config.ts`. TypeScript was chosen over JSON for type safety,
 auto-completion, and the ability to embed RegExps and inline functions.
 
 ## Minimum Viable Config
@@ -134,7 +134,7 @@ interface OpenApiConfig {
 
 ## Loading Order
 
-1. Resolve `mock.config.ts` from cwd (or the path given to `--config`).
+1. Resolve `smocker.config.ts` from cwd (or the path given to `--config`).
 2. Dynamically import via Bun.
 3. Merge with defaults (deep merge for objects, replacement for arrays).
 4. Apply env-var overrides.

@@ -10,25 +10,128 @@ Convention-over-configuration mock server for Bun.
 
 Read more: [docs/README.md](docs/README.md)
 
-## Quick Start
+## Getting Started
+
+### Requirements
+
+- [Bun](https://bun.sh) **≥ 1.1**
+- An empty directory (or an existing project) where smocker should live
+
+### 1. Install
+
+Inside any project:
+
+```bash
+bun add -d github:YOUR_USER/smocker#v0.1.0
+```
+
+> npm publishing is planned. Until then, install from a tagged GitHub
+> release and pin the tag (e.g. `#v0.1.0`) for reproducible installs.
+
+### 2. Scaffold a project with `smocker init`
+
+The fastest way to bootstrap is to let `smocker init` write the files
+for you. Two flavors:
+
+**Interactive (recommended for first-time use):**
+
+```bash
+bun smocker init
+```
+
+You'll be asked for a project name, port, and which optional pieces to
+include (example endpoints, a `helpers/` folder, a seeded `db/`, a
+`tsconfig.json`). Answer the prompts and you'll end up with:
+
+```text
+.
+├── smocker.config.ts
+├── endpoints/
+│   ├── health/response.json
+│   ├── users/response.json
+│   └── users/_id/response.json
+└── helpers/guid.ts          # if you opted in
+```
+
+**Non-interactive (CI, scripts):**
+
+```bash
+bun smocker init --yes --name my-api --port 3000 --examples --helpers
+```
+
+**From an OpenAPI spec:**
+
+```bash
+# Local file
+bun smocker init --from-openapi ./openapi.yaml
+
+# Remote, with auth
+bun smocker init --from-openapi https://api.example.com/openapi.json \
+  --header "Authorization: Bearer $TOKEN"
+```
+
+This generates one `endpoints/<path>/response.json` per operation in the
+spec, merging multiple methods (`GET`/`POST`/`DELETE`) into a single
+file per folder. Re-running is additive: missing methods get added,
+existing ones are preserved (use `--force` to overwrite).
+
+Full reference: [`docs/features/init.md`](docs/features/init.md).
+
+### 3. Run the server
+
+```bash
+bun smocker serve
+```
+
+You should see a startup banner and the server begins listening on
+`http://localhost:3000`. Hit your mocks with `curl`:
+
+```bash
+curl localhost:3000/health
+# {"ok":true,"service":"my-api"}
+
+curl localhost:3000/users/42
+# {"id":"42","name":"User 42"}
+```
+
+If you configured a `baseUrl` in `smocker.config.ts`, anything you
+haven't mocked is transparently proxied to the real backend.
+
+### 4. Iterate
+
+Add or edit files under `endpoints/` and they're picked up on the next
+request — no restart required. Read the [Folder
+Conventions](docs/features/conventions.md) for the rules, then dive
+into [Templating](docs/features/templating.md), [Hooks](docs/features/hooks.md),
+or the [Database](docs/features/database.md) when you need more.
+
+> Step-by-step walkthrough that builds the same scaffold by hand:
+> [`docs/getting-started.md`](docs/getting-started.md).
+
+---
+
+### Hacking on smocker itself
+
+If you cloned this repo (rather than installing the package):
 
 ```bash
 bun install
-bun run dev
-curl localhost:3000/users
-curl localhost:3000/users/42
-curl localhost:3000/posts
+bun run dev          # equivalent to: bun run src/cli/index.ts serve
 ```
 
-The included `mock.config.ts` proxies unmocked routes to `https://jsonplaceholder.typicode.com`.
+The bundled example `smocker.config.ts` proxies unmocked routes to
+`https://jsonplaceholder.typicode.com`, so you can immediately try:
 
-Read more: [docs/getting-started.md](docs/getting-started.md)
+```bash
+curl localhost:3000/users        # mocked
+curl localhost:3000/posts        # proxied
+```
 
 ## Folder Conventions
 
 ```text
 .
-├── mock.config.ts
+├── smocker.config.ts
 ├── endpoints/
 │   └── users/
 │       ├── response.json
@@ -191,7 +294,7 @@ curl -X POST localhost:3000/users -H 'content-type: application/json' -d '{"name
 curl localhost:3000/users
 ```
 
-Persistence stays opt-in through `mock.config.ts -> db.persist`.
+Persistence stays opt-in through `smocker.config.ts -> db.persist`.
 
 Read more: [docs/features/database.md](docs/features/database.md)
 
@@ -200,10 +303,10 @@ Read more: [docs/features/database.md](docs/features/database.md)
 Enable recording for a run:
 
 ```bash
-bun run src/index.ts serve --record
+bun smocker serve --record
 ```
 
-Or set it in `mock.config.ts`:
+Or set it in `smocker.config.ts`:
 
 ```ts
 record: {
@@ -272,25 +375,29 @@ Read more: [docs/reference/api.md](docs/reference/api.md)
 ## CLI Reference
 
 ```text
-smocker [serve]
-smocker check api
-smocker check mocks
-smocker check all
+smocker serve [--config <path>] [--port <n>] [--base-url <url>] [--record]
+smocker check api   [--fail] [--base-url <url>]
+smocker check mocks [--fail]
+smocker check all   [--fail] [--base-url <url>]
+smocker init [--yes] [--name <s>] [--port <n>]
+             [--examples|--no-examples] [--helpers|--no-helpers]
+             [--db|--no-db] [--tsconfig|--no-tsconfig]
+             [--cwd <dir>] [--force]
+smocker init --from-openapi <spec> [--header "Name: value" ...]
+             [--yes] [--cwd <dir>] [--force]
 ```
 
-Flags:
+Common flags:
 
-- `--config <path>`
-- `--port <n>`
-- `--base-url <url>`
-- `--record`
-- `--fail`
-- `--help`
-- `--version`
+- `--config <path>` — alternate `smocker.config.ts` location.
+- `--port <n>` — override the configured port.
+- `--base-url <url>` — applies to both `serve` and `check`, so the
+  checker can target a different backend without editing config.
+- `--record` — record proxied responses as new mocks.
+- `--fail` — `check` exits with status 1 on any drift.
+- `--help`, `--version` — standard.
 
-`--base-url` applies to both `serve` and `check`, which makes it easy to point the checker at a different backend without editing `mock.config.ts`.
-
-Read more: [docs/reference/api.md](docs/reference/api.md)
+Read more: [docs/features/init.md](docs/features/init.md) · [docs/reference/api.md](docs/reference/api.md)
 
 ## OpenAPI Checker
 
@@ -302,16 +409,16 @@ Smocker ships with a CLI checker that compares your OpenAPI spec against:
 Quick start:
 
 ```bash
-bun run src/index.ts check mocks
-bun run src/index.ts check api --base-url http://127.0.0.1:3000
-bun run src/index.ts check all --fail --base-url http://127.0.0.1:3000
+bun smocker check mocks
+bun smocker check api --base-url http://127.0.0.1:3000
+bun smocker check all --fail --base-url http://127.0.0.1:3000
 ```
 
-The bundled example config points `baseUrl` at `https://jsonplaceholder.typicode.com`, which does not match the bundled `/users` spec. For a green end-to-end example, run the local server and point `check api` back at Smocker itself:
+The bundled example config points `baseUrl` at `https://jsonplaceholder.typicode.com`, which does not match the bundled `/users` spec. For a green end-to-end example, run the local server and point `check api` back at smocker itself:
 
 ```bash
-bun run src/index.ts serve --base-url ""
-bun run src/index.ts check api --base-url http://127.0.0.1:3000
+bun smocker serve --base-url ""
+bun smocker check api --base-url http://127.0.0.1:3000
 ```
 
 Sample overrides live in `openapi.check.sampleData` and are keyed by either `operationId` or `<METHOD> <path>`:

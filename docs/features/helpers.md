@@ -13,7 +13,7 @@ helpers/
 └── now.ts
 ```
 
-- Flat directory (configurable via `mock.config.ts → helpersDir`).
+- Flat directory (configurable via `smocker.config.ts → helpersDir`).
 - Each `.ts` (or `.js`) file is one helper.
 - The **filename** (without extension) is the **invocation name**.
 - Discovery happens once at startup. Restart to pick up new helpers.

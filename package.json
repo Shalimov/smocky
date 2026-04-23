@@ -5,27 +5,40 @@
   "type": "module",
   "module": "./src/index.ts",
   "types": "./src/index.ts",
+  "license": "MIT",
   "bin": {
-    "smocker": "./src/index.ts"
+    "smocker": "./src/cli/index.ts"
   },
   "exports": {
     ".": "./src/index.ts",
     "./types": "./src/types.ts"
   },
+  "files": [
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "bun": ">=1.1"
+  },
   "scripts": {
-    "dev": "bun run src/index.ts serve",
-    "start": "bun run src/index.ts serve",
-    "record": "RECORD=1 bun run src/index.ts serve",
-    "check:api": "bun run src/index.ts check api",
-    "check:mocks": "bun run src/index.ts check mocks",
-    "check:all": "bun run src/index.ts check all",
+    "dev": "bun run src/cli/index.ts serve",
+    "start": "bun run src/cli/index.ts serve",
+    "record": "RECORD=1 bun run src/cli/index.ts serve",
+    "check:api": "bun run src/cli/index.ts check api",
+    "check:mocks": "bun run src/cli/index.ts check mocks",
+    "check:all": "bun run src/cli/index.ts check all",
     "test": "bun test",
     "typecheck": "bun x tsc --noEmit"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^14.2.1",
+    "@clack/prompts": "^0.10.1",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "citty": "^0.1.6",
     "json-schema-faker": "^0.5.8"
   },
   "devDependencies": {

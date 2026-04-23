@@ -7,7 +7,7 @@ mock so the next call can be served offline.
 
 ## When the Proxy Runs
 
-Set `baseUrl` in `mock.config.ts`:
+Set `baseUrl` in `smocker.config.ts`:
 
 ```ts
 import { defineConfig } from 'smocker';
@@ -69,19 +69,22 @@ next run.
 Three ways, in priority order:
 
 ```bash
-bun run src/index.ts serve --record
+bun smocker serve --record
 ```
 
 ```bash
-RECORD=1 bun run src/index.ts serve
+RECORD=1 bun smocker serve
 ```
 
 ```ts
-// mock.config.ts
+// smocker.config.ts
 record: {
   enabled: true,
 }
 ```
+
+> If you're hacking on smocker from a checkout, replace `bun smocker`
+> with `bun run src/cli/index.ts` in any of these commands.
 
 ### Configuration
 
@@ -160,10 +163,10 @@ Each recording action emits a single log line:
 ### Record once, then go offline
 
 ```bash
-RECORD=1 bun run src/index.ts serve
+RECORD=1 bun smocker serve
 # exercise the app...
 # stop the server, then run again without RECORD
-bun run src/index.ts serve
+bun smocker serve
 ```
 
 ### Capture only a subset of an API

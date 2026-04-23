@@ -1,0 +1,17 @@
+import { defineConfig } from 'smocker';
+
+export default defineConfig({
+  port: <%port%>,
+  endpointsDir: './endpoints',
+  helpersDir: './helpers',
+  globalHeaders: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': '*',
+    'Access-Control-Allow-Headers': '*',
+  },
+  db: {
+    dir: './db',
+    persist: false,
+    autoId: 'uuid',
+  },
+});

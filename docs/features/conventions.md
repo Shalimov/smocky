@@ -7,13 +7,13 @@ filenames declare intent, and the absence of a file means "use the default."
 
 ```
 your-project/
-├── mock.config.ts           # configuration
+├── smocker.config.ts           # configuration
 ├── endpoints/               # mocked routes
 ├── helpers/                 # template helpers
 └── db/                      # optional collection seed files
 ```
 
-All directory names are configurable through `mock.config.ts`.
+All directory names are configurable through `smocker.config.ts`.
 
 ## `endpoints/` Layout
 

@@ -5,8 +5,10 @@ is the canonical reference for both.
 
 ## CLI
 
-The package's `bin` field exposes the `smocker` command. When developing
-inside this repo, use `bun run src/index.ts` instead.
+The package's `bin` field exposes the `smocker` command. After installing
+with `bun add -d github:YOUR_USER/smocker#v0.1.0`, run it with `bun
+smocker <command>`. When developing inside this repo, use `bun run
+src/cli/index.ts <command>` instead.
 
 ```
 smocker <command> [options]
@@ -16,19 +18,34 @@ Commands:
   check api          Validate spec against the real API
   check mocks        Validate spec against local mocks
   check all          Both api + mocks
+  init               Scaffold a new project (blank or from OpenAPI)
 
-Global options:
-  --config <path>    Path to mock.config.ts (default: ./mock.config.ts)
+Global options (serve / check):
+  --config <path>    Path to smocker.config.ts (default: ./smocker.config.ts)
   --port <n>         Override port
   --base-url <url>   Override baseUrl (applies to serve and check)
   --record           Enable recorder for this run
   --fail             (check) Exit with code 3 on any mismatch
   -h, --help         Show help
   -v, --version      Show version
+
+init options:
+  --from-openapi <spec>      Generate endpoints from a local file or URL
+  --header "Name: value"     (repeatable) headers for fetching the spec
+  --yes                      Skip prompts; use defaults / passed flags
+  --name <s>                 Project name baked into example responses
+  --port <n>                 Port baked into smocker.config.ts (default 3000)
+  --examples / --no-examples Toggle the example endpoints (default on)
+  --helpers  / --no-helpers  Toggle helpers/guid.ts (default on)
+  --db       / --no-db       Toggle db/users.json (default off)
+  --tsconfig / --no-tsconfig Toggle root tsconfig.json (default off)
+  --cwd <dir>                Target directory (default ".")
+  --force                    Overwrite existing files instead of skipping
 ```
 
 If no command is provided, `serve` is assumed. If `check` is provided
-without a subcommand, `all` is assumed.
+without a subcommand, `all` is assumed. See [`smocker init`](../features/init.md)
+for the full scaffolder reference.
 
 ### Exit Codes
 
@@ -42,11 +59,17 @@ without a subcommand, `all` is assumed.
 ### Examples
 
 ```bash
+# Scaffold a brand-new project (interactive)
+smocker init
+
+# Scaffold from an OpenAPI spec, no prompts
+smocker init --from-openapi ./openapi.yaml --yes
+
 # Start the server with defaults
 smocker
 
 # Use a different config and port
-smocker --config ./mocks/mock.config.ts --port 4000
+smocker --config ./mocks/smocker.config.ts --port 4000
 
 # Record upstream responses while serving
 smocker serve --record
@@ -83,7 +106,7 @@ Starts the mock server programmatically and returns a handle.
 import { startServer } from 'smocker';
 
 const server = await startServer({
-  config: './mock.config.ts',   // optional; defaults to cwd lookup
+  config: './smocker.config.ts',   // optional; defaults to cwd lookup
   port: 4000,                    // optional override
   baseUrl: 'http://api.local',   // optional override
   record: true,                  // optional override
@@ -122,7 +145,7 @@ restarting the HTTP server. Useful when integrated into a watcher.
 ### `defineConfig(config)`
 
 A thin identity helper that gives full TypeScript inference inside
-`mock.config.ts`:
+`smocker.config.ts`:
 
 ```ts
 import { defineConfig } from 'smocker';

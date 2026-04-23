@@ -36,7 +36,7 @@ describe('runCli', () => {
   test('returns 1 when check is requested without openapi.spec configured', async () => {
     captureConsole();
 
-    await expect(runCli(['check', 'api', '--config', '/tmp/does-not-exist.mock.config.ts'])).resolves.toBe(1);
+    await expect(runCli(['check', 'api', '--config', '/tmp/does-not-exist.smocker.config.ts'])).resolves.toBe(1);
     expect(errorLines.join('\n')).toContain('openapi.spec is not configured');
   });
 
@@ -70,7 +70,7 @@ describe('runCli', () => {
 
     try {
       await withTempDir('smocker-cli-check', async (dir) => {
-        const configPath = join(dir, 'mock.config.ts');
+        const configPath = join(dir, 'smocker.config.ts');
         const specPath = join(dir, 'openapi.json');
         await writeText(
           configPath,

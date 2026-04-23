@@ -12,7 +12,7 @@ describe('Phase 2 integration', () => {
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -146,7 +146,7 @@ describe('Phase 2 integration', () => {
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
 
       await writeText(join(helpersDir, 'guid.ts'), `export default function guid() { return 'unused'; }\n`);
       await writeJson(join(dbDir, 'users.json'), [{ id: 'u1', name: 'Alice', active: true }]);

@@ -19,7 +19,7 @@ describe('startServer', () => {
 
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -96,7 +96,7 @@ describe('startServer', () => {
       const appPort = await getFreePort();
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -153,7 +153,7 @@ describe('startServer', () => {
   test('returns 404 for unmatched routes when baseUrl is not configured', async () => {
     await withTempDir('smocker-no-base-url', async (dir) => {
       const appPort = await getFreePort();
-      const configPath = join(dir, 'mock.config.ts');
+      const configPath = join(dir, 'smocker.config.ts');
 
       await writeText(
         configPath,

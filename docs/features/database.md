@@ -44,7 +44,7 @@ If `db/` is missing or empty, the DB starts empty. Calling
 ## Configuration
 
 ```ts
-// mock.config.ts
+// smocker.config.ts
 db: {
   dir: './db',
   persist: false,

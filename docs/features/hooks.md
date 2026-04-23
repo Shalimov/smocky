@@ -77,7 +77,7 @@ export default hook;
 ```ts
 interface Ctx {
   req: MockRequest;
-  db?: Db;            // available when seeded or used via mock.config.ts
+  db?: Db;            // available when seeded or used via smocker.config.ts
 }
 ```
 

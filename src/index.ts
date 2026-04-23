@@ -321,7 +321,7 @@ Usage:
   smocker check all               Both
 
 Options:
-  --config <path>                 Path to mock.config.ts (default ./mock.config.ts)
+  --config <path>                 Path to smocker.config.ts (default ./smocker.config.ts)
   --port <n>                      Override port
   --base-url <url>                Override baseUrl
   --record                        Enable recorder
@@ -338,7 +338,7 @@ async function runCheckCommand(args: CliArgs): Promise<number> {
     record: args.record,
   });
   if (!config.openapi?.spec) {
-    console.error('[smocker] openapi.spec is not configured in mock.config.ts');
+    console.error('[smocker] openapi.spec is not configured in smocker.config.ts');
     return 1;
   }
 
