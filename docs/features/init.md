@@ -1,14 +1,14 @@
-# `smocker init`
+# `smocky init`
 
-Scaffold a new Smocker project — either blank or pre-populated from an
+Scaffold a new Smocky project — either blank or pre-populated from an
 OpenAPI spec — without copy-pasting boilerplate.
 
 `init` works in two mutually exclusive modes:
 
 | Mode | Command | What you get |
 |---|---|---|
-| **Blank** | `smocker init` | `smocker.config.ts`, two example endpoints, optional helper, optional `db/`, optional `tsconfig.json` |
-| **From OpenAPI** | `smocker init --from-openapi <spec>` | One `endpoints/<path>/response.json` per operation in the spec, with method blocks merged per folder |
+| **Blank** | `smocky init` | `smocky.config.ts`, two example endpoints, optional helper, optional `db/`, optional `tsconfig.json` |
+| **From OpenAPI** | `smocky init --from-openapi <spec>` | One `endpoints/<path>/response.json` per operation in the spec, with method blocks merged per folder |
 
 Both modes are **non-destructive by default**: existing files are skipped
 (reported as `- skipped`). Pass `--force` to overwrite.
@@ -23,7 +23,7 @@ URL (`https://example.com/openapi.json`).
 Run with no flags for an interactive walkthrough:
 
 ```bash
-bun smocker init
+bun smocky init
 ```
 
 You'll be asked for:
@@ -42,7 +42,7 @@ Pass `--yes` (or run in a non-TTY context like CI) and everything falls
 back to flag values + sensible defaults:
 
 ```bash
-bun smocker init --yes \
+bun smocky init --yes \
   --name my-api \
   --port 4000 \
   --examples \
@@ -56,7 +56,7 @@ Available flags:
 | Flag | Default | Notes |
 |---|---|---|
 | `--name <string>` | `myapp` | Used in the `health` example. |
-| `--port <number>` | `3000` | Written to `smocker.config.ts`. |
+| `--port <number>` | `3000` | Written to `smocky.config.ts`. |
 | `--examples` / `--no-examples` | `true` | Toggle the example endpoints. |
 | `--helpers` / `--no-helpers` | `true` | Toggle `helpers/guid.ts`. |
 | `--db` / `--no-db` | `false` | Toggle `db/users.json`. |
@@ -68,7 +68,7 @@ Available flags:
 ### Output (typical)
 
 ```
-+ smocker.config.ts
++ smocky.config.ts
 + endpoints/health/response.json
 + endpoints/users/response.json
 + endpoints/users/_id/response.json
@@ -76,7 +76,7 @@ Available flags:
 - package.json (skipped)        # patched in place if present
 ```
 
-If your project has a `package.json`, `init` adds a `"mock": "smocker
+If your project has a `package.json`, `init` adds a `"mock": "smocky
 serve"` script (skipping if the script already exists). It will not
 create a `package.json` for you.
 
@@ -85,14 +85,14 @@ create a `package.json` for you.
 ## From OpenAPI
 
 ```bash
-bun smocker init --from-openapi ./openapi.yaml
-bun smocker init --from-openapi https://api.example.com/openapi.json
+bun smocky init --from-openapi ./openapi.yaml
+bun smocky init --from-openapi https://api.example.com/openapi.json
 ```
 
 Authenticate URL-fetched specs with repeatable `--header`:
 
 ```bash
-bun smocker init \
+bun smocky init \
   --from-openapi https://api.example.com/openapi.json \
   --header "Authorization: Bearer $TOKEN" \
   --header "X-Org-Id: 42"
@@ -113,7 +113,7 @@ bun smocker init \
 and faker fallback:
 
 ```bash
-bun smocker init --from-openapi ./openapi.json --yes
+bun smocky init --from-openapi ./openapi.json --yes
 ```
 
 ### Path mapping
@@ -141,7 +141,7 @@ Multiple methods on the same path collapse into one file:
 
 ### Body generation rules
 
-For each operation, smocker picks **one** response in this order:
+For each operation, smocky picks **one** response in this order:
 `200` → `201` → first `2XX` → `2XX` → `default` → first listed.
 
 Then for that response's content:
@@ -163,14 +163,14 @@ Then for that response's content:
 - For folders that already exist, missing methods are **merged in**
   (your hand-edited `GET` survives; a new `DELETE` from the spec is
   appended).
-- An existing `smocker.config.ts` is left untouched.
+- An existing `smocky.config.ts` is left untouched.
 
 Pass `--force` to fully overwrite each `response.json` with freshly
 generated content.
 
 ### Warnings
 
-After writing, smocker prints any per-operation issues:
+After writing, smocky prints any per-operation issues:
 
 ```
 ! POST /uploads: only multipart/form-data response, body left empty
@@ -186,7 +186,7 @@ These are advisory — generation continues for everything else.
 - It will not create a `package.json`.
 - It will not install dependencies.
 - It will not overwrite files unless you pass `--force`.
-- It will not start the server. Run `bun smocker serve` next.
+- It will not start the server. Run `bun smocky serve` next.
 
 ## Limitations (v0.1)
 

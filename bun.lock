@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "smocker",
+      "name": "smocky",
       "dependencies": {
         "@apidevtools/json-schema-ref-parser": "^14.2.1",
         "@clack/prompts": "^0.10.1",

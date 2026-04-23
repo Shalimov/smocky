@@ -7,14 +7,14 @@ import { runInit } from './commands/init';
 
 const main = defineCommand({
   meta: {
-    name: 'smocker',
+    name: 'smocky',
     description: 'Convention-over-configuration mock server for Bun.',
   },
   subCommands: {
     serve: defineCommand({
       meta: { name: 'serve', description: 'Start the mock server' },
       args: {
-        config: { type: 'string', description: 'Path to smocker.config.ts' },
+        config: { type: 'string', description: 'Path to smocky.config.ts' },
         port: { type: 'string', description: 'Override port' },
         'base-url': { type: 'string', description: 'Override baseUrl' },
         record: { type: 'boolean', description: 'Enable recorder', default: false },
@@ -36,7 +36,7 @@ const main = defineCommand({
       meta: { name: 'check', description: 'Validate spec against API and/or local mocks' },
       args: {
         target: { type: 'positional', description: 'api | mocks | all', required: false },
-        config: { type: 'string', description: 'Path to smocker.config.ts' },
+        config: { type: 'string', description: 'Path to smocky.config.ts' },
         port: { type: 'string', description: 'Override port' },
         'base-url': { type: 'string', description: 'Override baseUrl' },
         fail: { type: 'boolean', description: 'Exit non-zero on mismatch', default: false },
@@ -45,7 +45,7 @@ const main = defineCommand({
         const argv = ['check'];
         const target = (args.target as string | undefined) ?? 'all';
         if (!['api', 'mocks', 'all'].includes(target)) {
-          console.error(`[smocker] unknown check target: ${target}`);
+          console.error(`[smocky] unknown check target: ${target}`);
           process.exit(1);
         }
         argv.push(target);
@@ -58,7 +58,7 @@ const main = defineCommand({
       },
     }),
     init: defineCommand({
-      meta: { name: 'init', description: 'Scaffold a new Smocker project' },
+      meta: { name: 'init', description: 'Scaffold a new Smocky project' },
       args: {
         'from-openapi': {
           type: 'string',

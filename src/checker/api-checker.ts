@@ -13,7 +13,7 @@ export async function runApiChecker(
 ): Promise<void> {
   const checkerConfig = cfg.openapi?.check;
   if (!cfg.baseUrl) {
-    throw new Error('[smocker] baseUrl is required for `smocker check api`');
+    throw new Error('[smocky] baseUrl is required for `smocky check api`');
   }
 
   for (const descriptor of listOperations(spec)) {
@@ -111,7 +111,7 @@ export async function runApiChecker(
       });
     } catch (error) {
       setApiResult(report, descriptor.method, descriptor.path, {
-        status: error instanceof Error && error.name === 'AbortError' ? 'error' : 'error',
+        status: 'error',
         issues: [],
         note: error instanceof Error && error.name === 'AbortError' ? 'transport error: timeout' : `transport error: ${error instanceof Error ? error.message : String(error)}`,
       });

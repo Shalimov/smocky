@@ -31,9 +31,9 @@ interface Resolved {
 }
 
 export async function runScaffold(opts: ScaffoldOptions): Promise<number> {
-  p.intro('smocker init');
+  p.intro('smocky init');
 
-  const configPath = join(opts.cwd, 'smocker.config.ts');
+  const configPath = join(opts.cwd, 'smocky.config.ts');
   const configExists = await pathExists(configPath);
   if (configExists && !opts.force) {
     p.note(
@@ -54,7 +54,7 @@ export async function runScaffold(opts: ScaffoldOptions): Promise<number> {
   spinner.start('Writing files');
 
   results.push(
-    await writeRenderedFile('smocker.config.ts.tmpl', configPath, vars, opts.force),
+    await writeRenderedFile('smocky.config.ts.tmpl', configPath, vars, opts.force),
   );
 
   if (resolved.includeExamples) {
@@ -123,7 +123,7 @@ export async function runScaffold(opts: ScaffoldOptions): Promise<number> {
   printSummary(results, opts.cwd);
 
   p.outro(
-    `Next steps:\n  cd ${shortPath(opts.cwd)}\n  bun smocker serve\n\nTry it: curl http://localhost:${vars.port}/health`,
+    `Next steps:\n  cd ${shortPath(opts.cwd)}\n  bun smocky serve\n\nTry it: curl http://localhost:${vars.port}/health`,
   );
 
   return 0;
@@ -232,9 +232,9 @@ async function patchPackageJson(pkgPath: string): Promise<void> {
     const pkg = JSON.parse(raw) as { scripts?: Record<string, string> };
     pkg.scripts ??= {};
     if (!pkg.scripts.mock) {
-      pkg.scripts.mock = 'smocker serve';
+      pkg.scripts.mock = 'smocky serve';
       await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-      p.log.info('Added "mock": "smocker serve" script to package.json');
+      p.log.info('Added "mock": "smocky serve" script to package.json');
     }
   } catch (err) {
     p.log.warn(

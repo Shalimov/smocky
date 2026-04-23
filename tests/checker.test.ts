@@ -17,7 +17,7 @@ import { withTempDir, writeJson, writeText, getFreePort } from './test-utils';
 
 describe('checker modules', () => {
   test('loadSpec dereferences file specs', async () => {
-    await withTempDir('smocker-spec', async (dir) => {
+    await withTempDir('smocky-spec', async (dir) => {
       await writeJson(join(dir, 'components.json'), {
         User: {
           type: 'object',
@@ -69,7 +69,7 @@ describe('checker modules', () => {
   });
 
   test('sample generator prefers overrides and synthesizes params', async () => {
-    await withTempDir('smocker-samples', async (dir) => {
+    await withTempDir('smocky-samples', async (dir) => {
       const sampleFile = join(dir, 'samples.json');
       await writeJson(sampleFile, {
         createUser: { name: 'Override' },
@@ -109,7 +109,7 @@ describe('checker modules', () => {
   });
 
   test('mock checker reports ok and undocumented mocks', async () => {
-    await withTempDir('smocker-mock-checker', async (dir) => {
+    await withTempDir('smocky-mock-checker', async (dir) => {
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
@@ -169,7 +169,7 @@ describe('checker modules', () => {
   });
 
   test('mock checker validates hook-mutated status and body', async () => {
-    await withTempDir('smocker-mock-hooks', async (dir) => {
+    await withTempDir('smocky-mock-hooks', async (dir) => {
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
@@ -182,7 +182,7 @@ describe('checker modules', () => {
       await writeText(
         join(endpointsDir, 'users', '_id', 'hook.ts'),
         [
-          `import type { Hook } from 'smocker';`,
+          `import type { Hook } from 'smocky';`,
           ``,
           `const hook: Hook = (req, res) => {`,
           `  if (!res.body) {`,

@@ -1,19 +1,19 @@
 # Conventions
 
-Smocker is driven by **filesystem conventions**. Folders define routes,
+Smocky is driven by **filesystem conventions**. Folders define routes,
 filenames declare intent, and the absence of a file means "use the default."
 
 ## Top-Level Layout
 
 ```
 your-project/
-├── smocker.config.ts           # configuration
+├── smocky.config.ts           # configuration
 ├── endpoints/               # mocked routes
 ├── helpers/                 # template helpers
 └── db/                      # optional collection seed files
 ```
 
-All directory names are configurable through `smocker.config.ts`.
+All directory names are configurable through `smocky.config.ts`.
 
 ## `endpoints/` Layout
 

@@ -78,7 +78,7 @@ async function writeCollection(dir: string, name: string, items: unknown[]): Pro
     await rename(tempPath, filePath);
   } catch (error) {
     console.warn(
-      `[smocker] db persistence error for ${name}: ${error instanceof Error ? error.message : String(error)}`,
+      `[smocky] db persistence error for ${name}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }

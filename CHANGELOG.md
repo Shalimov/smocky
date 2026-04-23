@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Smocker are listed here. The project follows
+All notable changes to Smocky are listed here. The project follows
 [Semantic Versioning](https://semver.org/) once it reaches `1.0.0`. Until
 then, minor versions may include breaking changes.
 
@@ -11,13 +11,13 @@ then, minor versions may include breaking changes.
 First public, installable release.
 
 ### Added
-- `smocker init` — interactive scaffolder that writes
-  `smocker.config.ts`, example endpoints (`health`, `users`,
+- `smocky init` — interactive scaffolder that writes
+  `smocky.config.ts`, example endpoints (`health`, `users`,
   `users/_id`), an optional `helpers/guid.ts`, optional `db/users.json`
   seed, and optional `tsconfig.json`. Non-interactive mode via `--yes`
   and per-feature flags (`--examples/--no-examples`, `--helpers`,
   `--db`, `--tsconfig`, `--name`, `--port`, `--cwd`, `--force`).
-- `smocker init --from-openapi <spec>` — generate one
+- `smocky init --from-openapi <spec>` — generate one
   `endpoints/<path>/response.json` per OpenAPI operation.
   - Accepts a local file path or `http(s)://` URL.
   - Auth via repeatable `--header "Name: value"`.
@@ -35,17 +35,17 @@ First public, installable release.
 - `LICENSE` (MIT) and `CHANGELOG.md`.
 - `package.json` is now installable: bumped to `0.1.0`, declares
   `engines.bun >= 1.1`, ships `src/`, `templates/`, `LICENSE`, and
-  `README.md`, and exposes a `smocker` bin.
+  `README.md`, and exposes a `smocky` bin.
 - Project scaffolds available under `templates/` so installs from
   GitHub include them.
 
 ### Changed
 - Default config file renamed from `mock.config.ts` to
-  `smocker.config.ts`. The old name is still loaded with a one-time
+  `smocky.config.ts`. The old name is still loaded with a one-time
   deprecation warning at startup.
 - `bin` entry repointed to the new Citty CLI (`./src/cli/index.ts`).
-- README and `docs/getting-started.md` lead with `smocker init` and
-  install from `github:YOUR_USER/smocker#v0.1.0`.
+- README and `docs/getting-started.md` lead with `smocky init` and
+  install from `github:YOUR_USER/smocky#v0.1.0`.
 
 ### Compatibility
 - Public exports unchanged: `defineConfig`, `startServer`, `runCli`,

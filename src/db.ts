@@ -123,10 +123,6 @@ export function createDb(options: CreateDbOptions = {}): Db {
 }
 
 function createId(autoId: 'uuid' | undefined): string {
-  if (!autoId || autoId === 'uuid') {
-    return crypto.randomUUID();
-  }
-
   return crypto.randomUUID();
 }
 

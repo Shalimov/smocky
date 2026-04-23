@@ -14,9 +14,9 @@
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
-      "smocker": ["./src/index.ts"],
-      "smocker/types": ["./src/types.ts"]
+      "smocky": ["./src/index.ts"],
+      "smocky/types": ["./src/types.ts"]
     }
   },
-  "include": ["src/**/*", "tests/**/*.ts", "helpers/**/*.ts", "endpoints/**/*.ts", "smocker.config.ts"]
+  "include": ["src/**/*", "tests/**/*.ts", "helpers/**/*.ts", "endpoints/**/*.ts", "smocky.config.ts"]
 }

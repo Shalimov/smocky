@@ -1,16 +1,16 @@
 # Proxy and Recorder
 
-When no mock matches an incoming request, Smocker falls through to the
+When no mock matches an incoming request, Smocky falls through to the
 **proxy**, forwarding the call to the upstream API at `baseUrl`. With the
 **recorder** enabled, the upstream response is also persisted as a local
 mock so the next call can be served offline.
 
 ## When the Proxy Runs
 
-Set `baseUrl` in `smocker.config.ts`:
+Set `baseUrl` in `smocky.config.ts`:
 
 ```ts
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   baseUrl: 'https://jsonplaceholder.typicode.com',
@@ -69,21 +69,21 @@ next run.
 Three ways, in priority order:
 
 ```bash
-bun smocker serve --record
+bun smocky serve --record
 ```
 
 ```bash
-RECORD=1 bun smocker serve
+RECORD=1 bun smocky serve
 ```
 
 ```ts
-// smocker.config.ts
+// smocky.config.ts
 record: {
   enabled: true,
 }
 ```
 
-> If you're hacking on smocker from a checkout, replace `bun smocker`
+> If you're hacking on smocky from a checkout, replace `bun smocky`
 > with `bun run src/cli/index.ts` in any of these commands.
 
 ### Configuration
@@ -163,10 +163,10 @@ Each recording action emits a single log line:
 ### Record once, then go offline
 
 ```bash
-RECORD=1 bun smocker serve
+RECORD=1 bun smocky serve
 # exercise the app...
 # stop the server, then run again without RECORD
-bun smocker serve
+bun smocky serve
 ```
 
 ### Capture only a subset of an API

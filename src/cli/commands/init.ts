@@ -48,7 +48,7 @@ function parseHeaders(input: string[]): Record<string, string> {
   for (const entry of input) {
     const idx = entry.indexOf(':');
     if (idx === -1) {
-      console.warn(`[smocker] ignoring malformed --header (expected "Name: value"): ${entry}`);
+      console.warn(`[smocky] ignoring malformed --header (expected "Name: value"): ${entry}`);
       continue;
     }
     const name = entry.slice(0, idx).trim();

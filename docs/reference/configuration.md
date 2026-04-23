@@ -1,13 +1,13 @@
 # Configuration
 
-Smocker is configured via a single TypeScript file at the project root:
-`smocker.config.ts`. TypeScript was chosen over JSON for type safety,
+Smocky is configured via a single TypeScript file at the project root:
+`smocky.config.ts`. TypeScript was chosen over JSON for type safety,
 auto-completion, and the ability to embed RegExps and inline functions.
 
 ## Minimum Viable Config
 
 ```ts
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   baseUrl: 'https://api.example.com',
@@ -19,7 +19,7 @@ Everything else has sensible defaults.
 ## Full Schema
 
 ```ts
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   port: 3000,
@@ -89,7 +89,7 @@ precedence. Designed primarily for CORS, but useful for any cross-cutting
 header. Proxied responses are unaffected.
 
 These headers are also returned on auto-handled `OPTIONS` preflight
-requests (Smocker replies with `204` and `globalHeaders`).
+requests (Smocky replies with `204` and `globalHeaders`).
 
 ### `record` *(object)*
 
@@ -134,7 +134,7 @@ interface OpenApiConfig {
 
 ## Loading Order
 
-1. Resolve `smocker.config.ts` from cwd (or the path given to `--config`).
+1. Resolve `smocky.config.ts` from cwd (or the path given to `--config`).
 2. Dynamically import via Bun.
 3. Merge with defaults (deep merge for objects, replacement for arrays).
 4. Apply env-var overrides.

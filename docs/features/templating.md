@@ -1,6 +1,6 @@
 # Templating
 
-Smocker's template engine is a **Liquid-lite** interpolator that runs on
+Smocky's template engine is a **Liquid-lite** interpolator that runs on
 every string value inside `response.json`. Use it to:
 
 1. Pull live data from the incoming request (`req.params.id`, …).

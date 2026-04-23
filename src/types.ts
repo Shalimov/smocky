@@ -1,12 +1,5 @@
 import type { Db } from './db';
 
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
-
-export interface JsonObject {
-  [key: string]: JsonValue;
-}
-
 export interface MockRequest {
   method: string;
   path: string;

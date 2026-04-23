@@ -14,34 +14,34 @@ anything by hand later.
 Inside an existing project (or an empty directory you just `mkdir`'d):
 
 ```bash
-bun add -d github:YOUR_USER/smocker#v0.1.0
+bun add -d github:YOUR_USER/smocky#v0.1.0
 ```
 
 > npm publishing is planned; until then, install from a tagged GitHub
 > release. Pin to a tag (e.g. `#v0.1.0`) for reproducible installs.
 
-If you cloned this repository to hack on smocker itself, run `bun
-install` instead and substitute `bun smocker` with `bun run src/cli/index.ts`
+If you cloned this repository to hack on smocky itself, run `bun
+install` instead and substitute `bun smocky` with `bun run src/cli/index.ts`
 in the commands below.
 
 ## The three-command tour
 
 ```bash
-bun smocker init        # 1. scaffold the project
-bun smocker serve       # 2. start the mock server
+bun smocky init        # 1. scaffold the project
+bun smocky serve       # 2. start the mock server
 curl localhost:3000/health
 ```
 
 That's it. The rest of this page explains what `init` produced and how
 to extend it.
 
-## 1. Scaffold a project (`smocker init`)
+## 1. Scaffold a project (`smocky init`)
 
-`smocker init` writes a working scaffold so you don't have to type any
+`smocky init` writes a working scaffold so you don't have to type any
 boilerplate. Run it interactively:
 
 ```bash
-bun smocker init
+bun smocky init
 ```
 
 You'll be asked:
@@ -56,7 +56,7 @@ You'll be asked:
 Skip the prompts entirely with `--yes` and pick options via flags:
 
 ```bash
-bun smocker init --yes \
+bun smocky init --yes \
   --name my-api \
   --port 3000 \
   --examples --helpers --no-db --no-tsconfig
@@ -69,10 +69,10 @@ tree from it instead of writing examples:
 
 ```bash
 # local file
-bun smocker init --from-openapi ./openapi.yaml
+bun smocky init --from-openapi ./openapi.yaml
 
 # remote, with auth
-bun smocker init --from-openapi https://api.example.com/openapi.json \
+bun smocky init --from-openapi https://api.example.com/openapi.json \
   --header "Authorization: Bearer $TOKEN"
 ```
 
@@ -85,12 +85,12 @@ The full reference for both modes lives at [`features/init.md`](features/init.md
 
 ### What `init` writes
 
-After running `bun smocker init --yes --name my-api --examples --helpers`
+After running `bun smocky init --yes --name my-api --examples --helpers`
 you get:
 
 ```text
 .
-├── smocker.config.ts
+├── smocky.config.ts
 ├── endpoints/
 │   ├── health/response.json
 │   ├── users/response.json
@@ -99,20 +99,20 @@ you get:
     └── guid.ts
 ```
 
-If your project has a `package.json`, a `"mock": "smocker serve"`
+If your project has a `package.json`, a `"mock": "smocky serve"`
 script is added (skipped if it already exists). `init` will not create
 a `package.json` for you.
 
-## 2. Start the server (`smocker serve`)
+## 2. Start the server (`smocky serve`)
 
 ```bash
-bun smocker serve
+bun smocky serve
 ```
 
 You should see something like:
 
 ```
-[smocker]
+[smocky]
   port:      3000
   baseUrl:   (disabled)
   endpoints: 3 routes (2 static, 1 dynamic)
@@ -155,10 +155,10 @@ exposes it as `req.params.id` in templates and hooks.
 If you skipped `init` and want to create everything by hand, this is
 exactly what to write.
 
-### `smocker.config.ts`
+### `smocky.config.ts`
 
 ```ts
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   port: 3000,
@@ -225,7 +225,7 @@ Helpers are loaded at server startup; restart after adding one.
 For conditional logic that doesn't fit in `response.json`:
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res) => {
   if (req.params.id === '404') {
@@ -244,7 +244,7 @@ curl -i localhost:3000/users/404
 
 ## Where to go next
 
-- [`smocker init`](features/init.md) — full reference for the scaffolder, including `--from-openapi`
+- [`smocky init`](features/init.md) — full reference for the scaffolder, including `--from-openapi`
 - [Conventions](features/conventions.md) — the filesystem rules in detail
 - [Routing](features/routing.md) — URL → folder mapping, dynamic segments, precedence
 - [Templating](features/templating.md) — what you can do inside `{{ }}`

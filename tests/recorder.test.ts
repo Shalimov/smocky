@@ -7,7 +7,7 @@ import { withTempDir } from './test-utils';
 
 describe('recorder', () => {
   test('applies include/exclude filters and records JSON responses', async () => {
-    await withTempDir('smocker-recorder', async (dir) => {
+    await withTempDir('smocky-recorder', async (dir) => {
       const recorder = createRecorder({
         enabled: true,
         outputDir: dir,
@@ -50,7 +50,7 @@ describe('recorder', () => {
   });
 
   test('preserves existing method blocks unless overwrite is enabled and skips non-json bodies', async () => {
-    await withTempDir('smocker-recorder-merge', async (dir) => {
+    await withTempDir('smocky-recorder-merge', async (dir) => {
       const recorder = createRecorder({
         enabled: true,
         outputDir: dir,

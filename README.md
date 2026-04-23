@@ -1,8 +1,8 @@
-# Smocker
+# Smocky
 
 Convention-over-configuration mock server for Bun.
 
-## Why Smocker?
+## Why Smocky?
 
 - Mock only the endpoints you need and proxy everything else.
 - Keep mocks as files instead of custom middleware glue.
@@ -15,28 +15,28 @@ Read more: [docs/README.md](docs/README.md)
 ### Requirements
 
 - [Bun](https://bun.sh) **≥ 1.1**
-- An empty directory (or an existing project) where smocker should live
+- An empty directory (or an existing project) where smocky should live
 
 ### 1. Install
 
 Inside any project:
 
 ```bash
-bun add -d github:YOUR_USER/smocker#v0.1.0
+bun add -d github:YOUR_USER/smocky#v0.1.0
 ```
 
 > npm publishing is planned. Until then, install from a tagged GitHub
 > release and pin the tag (e.g. `#v0.1.0`) for reproducible installs.
 
-### 2. Scaffold a project with `smocker init`
+### 2. Scaffold a project with `smocky init`
 
-The fastest way to bootstrap is to let `smocker init` write the files
+The fastest way to bootstrap is to let `smocky init` write the files
 for you. Two flavors:
 
 **Interactive (recommended for first-time use):**
 
 ```bash
-bun smocker init
+bun smocky init
 ```
 
 You'll be asked for a project name, port, and which optional pieces to
@@ -45,7 +45,7 @@ include (example endpoints, a `helpers/` folder, a seeded `db/`, a
 
 ```text
 .
-├── smocker.config.ts
+├── smocky.config.ts
 ├── endpoints/
 │   ├── health/response.json
 │   ├── users/response.json
@@ -56,17 +56,17 @@ include (example endpoints, a `helpers/` folder, a seeded `db/`, a
 **Non-interactive (CI, scripts):**
 
 ```bash
-bun smocker init --yes --name my-api --port 3000 --examples --helpers
+bun smocky init --yes --name my-api --port 3000 --examples --helpers
 ```
 
 **From an OpenAPI spec:**
 
 ```bash
 # Local file
-bun smocker init --from-openapi ./openapi.yaml
+bun smocky init --from-openapi ./openapi.yaml
 
 # Remote, with auth
-bun smocker init --from-openapi https://api.example.com/openapi.json \
+bun smocky init --from-openapi https://api.example.com/openapi.json \
   --header "Authorization: Bearer $TOKEN"
 ```
 
@@ -80,7 +80,7 @@ Full reference: [`docs/features/init.md`](docs/features/init.md).
 ### 3. Run the server
 
 ```bash
-bun smocker serve
+bun smocky serve
 ```
 
 You should see a startup banner and the server begins listening on
@@ -94,7 +94,7 @@ curl localhost:3000/users/42
 # {"id":"42","name":"User 42"}
 ```
 
-If you configured a `baseUrl` in `smocker.config.ts`, anything you
+If you configured a `baseUrl` in `smocky.config.ts`, anything you
 haven't mocked is transparently proxied to the real backend.
 
 ### 4. Iterate
@@ -110,7 +110,7 @@ or the [Database](docs/features/database.md) when you need more.
 
 ---
 
-### Hacking on smocker itself
+### Hacking on smocky itself
 
 If you cloned this repo (rather than installing the package):
 
@@ -119,7 +119,7 @@ bun install
 bun run dev          # equivalent to: bun run src/cli/index.ts serve
 ```
 
-The bundled example `smocker.config.ts` proxies unmocked routes to
+The bundled example `smocky.config.ts` proxies unmocked routes to
 `https://jsonplaceholder.typicode.com`, so you can immediately try:
 
 ```bash
@@ -131,7 +131,7 @@ curl localhost:3000/posts        # proxied
 
 ```text
 .
-├── smocker.config.ts
+├── smocky.config.ts
 ├── endpoints/
 │   └── users/
 │       ├── response.json
@@ -226,7 +226,7 @@ Read more: [docs/features/helpers.md](docs/features/helpers.md)
 ## Hooks
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res) => {
   if (req.params.id === '404') {
@@ -246,7 +246,7 @@ Read more: [docs/features/hooks.md](docs/features/hooks.md)
 
 ## Stateful Mocks
 
-Smocker ships with a small in-memory DB seeded from `db/*.json`.
+Smocky ships with a small in-memory DB seeded from `db/*.json`.
 
 ```json
 // db/users.json
@@ -272,7 +272,7 @@ Templates can read from the DB:
 Hooks can mutate it:
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res, ctx) => {
   const users = ctx.db!.collection('users');
@@ -294,7 +294,7 @@ curl -X POST localhost:3000/users -H 'content-type: application/json' -d '{"name
 curl localhost:3000/users
 ```
 
-Persistence stays opt-in through `smocker.config.ts -> db.persist`.
+Persistence stays opt-in through `smocky.config.ts -> db.persist`.
 
 Read more: [docs/features/database.md](docs/features/database.md)
 
@@ -303,10 +303,10 @@ Read more: [docs/features/database.md](docs/features/database.md)
 Enable recording for a run:
 
 ```bash
-bun smocker serve --record
+bun smocky serve --record
 ```
 
-Or set it in `smocker.config.ts`:
+Or set it in `smocky.config.ts`:
 
 ```ts
 record: {
@@ -324,7 +324,7 @@ Read more: [docs/features/proxy-and-recorder.md](docs/features/proxy-and-recorde
 ## Configuration Reference
 
 ```ts
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   port: 3000,
@@ -362,7 +362,7 @@ Read more: [docs/reference/configuration.md](docs/reference/configuration.md)
 ## Library Use
 
 ```ts
-import { startServer } from 'smocker';
+import { startServer } from 'smocky';
 
 const server = await startServer({ port: 4000 });
 
@@ -375,21 +375,21 @@ Read more: [docs/reference/api.md](docs/reference/api.md)
 ## CLI Reference
 
 ```text
-smocker serve [--config <path>] [--port <n>] [--base-url <url>] [--record]
-smocker check api   [--fail] [--base-url <url>]
-smocker check mocks [--fail]
-smocker check all   [--fail] [--base-url <url>]
-smocker init [--yes] [--name <s>] [--port <n>]
+smocky serve [--config <path>] [--port <n>] [--base-url <url>] [--record]
+smocky check api   [--fail] [--base-url <url>]
+smocky check mocks [--fail]
+smocky check all   [--fail] [--base-url <url>]
+smocky init [--yes] [--name <s>] [--port <n>]
              [--examples|--no-examples] [--helpers|--no-helpers]
              [--db|--no-db] [--tsconfig|--no-tsconfig]
              [--cwd <dir>] [--force]
-smocker init --from-openapi <spec> [--header "Name: value" ...]
+smocky init --from-openapi <spec> [--header "Name: value" ...]
              [--yes] [--cwd <dir>] [--force]
 ```
 
 Common flags:
 
-- `--config <path>` — alternate `smocker.config.ts` location.
+- `--config <path>` — alternate `smocky.config.ts` location.
 - `--port <n>` — override the configured port.
 - `--base-url <url>` — applies to both `serve` and `check`, so the
   checker can target a different backend without editing config.
@@ -401,7 +401,7 @@ Read more: [docs/features/init.md](docs/features/init.md) · [docs/reference/api
 
 ## OpenAPI Checker
 
-Smocker ships with a CLI checker that compares your OpenAPI spec against:
+Smocky ships with a CLI checker that compares your OpenAPI spec against:
 
 - the local mocks under `endpoints/`
 - the real backend at `baseUrl`
@@ -409,16 +409,16 @@ Smocker ships with a CLI checker that compares your OpenAPI spec against:
 Quick start:
 
 ```bash
-bun smocker check mocks
-bun smocker check api --base-url http://127.0.0.1:3000
-bun smocker check all --fail --base-url http://127.0.0.1:3000
+bun smocky check mocks
+bun smocky check api --base-url http://127.0.0.1:3000
+bun smocky check all --fail --base-url http://127.0.0.1:3000
 ```
 
-The bundled example config points `baseUrl` at `https://jsonplaceholder.typicode.com`, which does not match the bundled `/users` spec. For a green end-to-end example, run the local server and point `check api` back at smocker itself:
+The bundled example config points `baseUrl` at `https://jsonplaceholder.typicode.com`, which does not match the bundled `/users` spec. For a green end-to-end example, run the local server and point `check api` back at smocky itself:
 
 ```bash
-bun smocker serve --base-url ""
-bun smocker check api --base-url http://127.0.0.1:3000
+bun smocky serve --base-url ""
+bun smocky check api --base-url http://127.0.0.1:3000
 ```
 
 Sample overrides live in `openapi.check.sampleData` and are keyed by either `operationId` or `<METHOD> <path>`:

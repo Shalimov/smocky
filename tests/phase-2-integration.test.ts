@@ -7,12 +7,12 @@ import { getFreePort, withTempDir, writeJson, writeText } from './test-utils';
 
 describe('Phase 2 integration', () => {
   test('templates can read db state and hooks can mutate it through ctx.db', async () => {
-    await withTempDir('smocker-phase2', async (dir) => {
+    await withTempDir('smocky-phase2', async (dir) => {
       const port = await getFreePort();
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
-      const configPath = join(dir, 'smocker.config.ts');
+      const configPath = join(dir, 'smocky.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -141,12 +141,12 @@ describe('Phase 2 integration', () => {
   });
 
   test('db persistence writes mutated collections back to disk on stop', async () => {
-    await withTempDir('smocker-phase2-persist', async (dir) => {
+    await withTempDir('smocky-phase2-persist', async (dir) => {
       const port = await getFreePort();
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
       const dbDir = join(dir, 'db');
-      const configPath = join(dir, 'smocker.config.ts');
+      const configPath = join(dir, 'smocky.config.ts');
 
       await writeText(join(helpersDir, 'guid.ts'), `export default function guid() { return 'unused'; }\n`);
       await writeJson(join(dbDir, 'users.json'), [{ id: 'u1', name: 'Alice', active: true }]);

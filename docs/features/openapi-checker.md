@@ -1,6 +1,6 @@
 # OpenAPI Checker
 
-`smocker check` is a separate CLI command that detects drift between three
+`smocky check` is a separate CLI command that detects drift between three
 artifacts:
 
 1. Your OpenAPI 3.x specification.
@@ -14,15 +14,15 @@ run on demand or in CI.
 
 | Command                  | Compares                      |
 |--------------------------|-------------------------------|
-| `smocker check api`      | Spec ↔ real API               |
-| `smocker check mocks`    | Spec ↔ local mocks            |
-| `smocker check all`      | Both, in one report           |
+| `smocky check api`      | Spec ↔ real API               |
+| `smocky check mocks`    | Spec ↔ local mocks            |
+| `smocky check all`      | Both, in one report           |
 
 ## Configuration
 
 ```ts
-// smocker.config.ts
-import { defineConfig } from 'smocker';
+// smocky.config.ts
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   baseUrl: 'http://127.0.0.1:3000',
@@ -58,14 +58,14 @@ export default defineConfig({
 ## CLI
 
 ```
-smocker check api    [--fail] [--config <path>] [--base-url <url>]
-smocker check mocks  [--fail] [--config <path>]
-smocker check all    [--fail] [--config <path>] [--base-url <url>]
+smocky check api    [--fail] [--config <path>] [--base-url <url>]
+smocky check mocks  [--fail] [--config <path>]
+smocky check all    [--fail] [--config <path>] [--base-url <url>]
 ```
 
-`--base-url` overrides `smocker.config.ts -> baseUrl` for `check api` and
+`--base-url` overrides `smocky.config.ts -> baseUrl` for `check api` and
 `check all` — handy for pointing the checker at a staging environment or
-back at Smocker itself without editing config.
+back at Smocky itself without editing config.
 
 `--fail` is equivalent to `openapi.check.failOnMismatch = true`.
 
@@ -152,26 +152,26 @@ JSON / JUnit / HTML reports are not supported.
 ### Check mocks before committing
 
 ```bash
-bun smocker check mocks --fail
+bun smocky check mocks --fail
 ```
 
 ### Compare staging to spec in CI
 
 ```bash
-bun smocker check api --base-url https://staging.example.com --fail
+bun smocky check api --base-url https://staging.example.com --fail
 ```
 
 ### Smoke-check the running mock server against itself
 
 ```bash
 # terminal 1
-bun smocker serve --base-url ""
+bun smocky serve --base-url ""
 
 # terminal 2
-bun smocker check api --base-url http://127.0.0.1:3000
+bun smocky check api --base-url http://127.0.0.1:3000
 ```
 
-> If you're working from a checkout, swap `bun smocker` for
+> If you're working from a checkout, swap `bun smocky` for
 > `bun run src/cli/index.ts`.
 
 ## Dependencies

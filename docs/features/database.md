@@ -1,6 +1,6 @@
 # Database
 
-Smocker ships with a small in-memory database so your mocks can behave like
+Smocky ships with a small in-memory database so your mocks can behave like
 a real backend: POST a record, subsequent GETs reflect it, DELETE removes
 it, queries filter the collection. Inspired by **json-server** and
 **MirageJS** but kept deliberately minimal.
@@ -44,7 +44,7 @@ If `db/` is missing or empty, the DB starts empty. Calling
 ## Configuration
 
 ```ts
-// smocker.config.ts
+// smocky.config.ts
 db: {
   dir: './db',
   persist: false,
@@ -101,7 +101,7 @@ template error.
 Hooks get full access through `ctx.db`:
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res, ctx) => {
   const users = ctx.db!.collection<{ id?: string; name: string; active?: boolean }>('users');
@@ -191,7 +191,7 @@ Other strategies (auto-increment, etc.) are out of scope.
 `endpoints/users/hook.ts`:
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res, ctx) => {
   if (req.method !== 'POST') return;

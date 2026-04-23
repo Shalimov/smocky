@@ -6,7 +6,7 @@ import { getFreePort, withTempDir, writeJson, writeText } from './test-utils';
 
 describe('startServer', () => {
   test('serves mocks, handles preflight, and proxies unmatched routes', async () => {
-    await withTempDir('smocker-server', async (dir) => {
+    await withTempDir('smocky-server', async (dir) => {
       const upstreamPort = await getFreePort();
       const appPort = await getFreePort();
       const upstream = Bun.serve({
@@ -19,7 +19,7 @@ describe('startServer', () => {
 
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
-      const configPath = join(dir, 'smocker.config.ts');
+      const configPath = join(dir, 'smocky.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -92,11 +92,11 @@ describe('startServer', () => {
   });
 
   test('reload rescans helpers and routes', async () => {
-    await withTempDir('smocker-reload', async (dir) => {
+    await withTempDir('smocky-reload', async (dir) => {
       const appPort = await getFreePort();
       const endpointsDir = join(dir, 'endpoints');
       const helpersDir = join(dir, 'helpers');
-      const configPath = join(dir, 'smocker.config.ts');
+      const configPath = join(dir, 'smocky.config.ts');
 
       await writeText(
         join(helpersDir, 'guid.ts'),
@@ -151,9 +151,9 @@ describe('startServer', () => {
   });
 
   test('returns 404 for unmatched routes when baseUrl is not configured', async () => {
-    await withTempDir('smocker-no-base-url', async (dir) => {
+    await withTempDir('smocky-no-base-url', async (dir) => {
       const appPort = await getFreePort();
-      const configPath = join(dir, 'smocker.config.ts');
+      const configPath = join(dir, 'smocky.config.ts');
 
       await writeText(
         configPath,

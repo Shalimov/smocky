@@ -18,16 +18,8 @@ import { createRecorder } from './recorder';
 import { buildMockRequest, createResponder } from './responder';
 import { buildRouter, type Router } from './router';
 import { createEngine, type Engine } from './template';
-import { defineConfig, loadConfig } from './config';
-import type {
-  Config,
-  Ctx,
-  Helper,
-  Hook,
-  MockRequest,
-  MockResponse,
-  ResolvedConfig,
-} from './types';
+import { loadConfig } from './config';
+import type { ResolvedConfig } from './types';
 
 export { defineConfig } from './config';
 export type { Config, Ctx, Helper, Hook, MockRequest, MockResponse } from './types';
@@ -85,7 +77,7 @@ export async function startServer(opts: StartOptions = {}): Promise<ServerHandle
 
       const upstream = await runtime.proxy.forward(raw.clone());
       runtime.recorder.record(raw, upstream.clone()).catch((error) => {
-        console.warn(`[smocker] recorder error: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`[smocky] recorder error: ${error instanceof Error ? error.message : String(error)}`);
       });
       return upstream;
     },
@@ -103,7 +95,7 @@ export async function startServer(opts: StartOptions = {}): Promise<ServerHandle
     },
     async reload(): Promise<void> {
       runtime = await buildRuntime(runtime.cfg, runtime.reloadToken + 1);
-      console.log('[smocker] runtime reloaded');
+      console.log('[smocky] runtime reloaded');
     },
   };
 }
@@ -167,7 +159,7 @@ function logStartup(runtime: RuntimeState, port: number): void {
   const staticRoutes = routes.filter((route) => route.paramNames.length === 0).length;
   const dynamicRoutes = routes.length - staticRoutes;
 
-  console.log('[smocker]');
+  console.log('[smocky]');
   console.log(`  port:      ${port}`);
   console.log(`  baseUrl:   ${runtime.cfg.baseUrl || '(disabled)'}`);
   console.log(`  endpoints: ${routes.length} routes (${staticRoutes} static, ${dynamicRoutes} dynamic)`);
@@ -205,7 +197,7 @@ export async function runCli(argv: string[]): Promise<number | undefined> {
   try {
     args = parseCliArgs(argv);
   } catch (error) {
-    console.error(`[smocker] ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
     return 1;
   }
 
@@ -222,7 +214,7 @@ export async function runCli(argv: string[]): Promise<number | undefined> {
     try {
       return await runCheckCommand(args);
     } catch (error) {
-      console.error(`[smocker] ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
       return 1;
     }
   }
@@ -238,7 +230,7 @@ export async function runCli(argv: string[]): Promise<number | undefined> {
     installSignalHandlers(handle);
     return undefined;
   } catch (error) {
-    console.error(`[smocker] ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
     return 2;
   }
 }
@@ -312,16 +304,16 @@ function readFlagValue(argv: string[], index: number, flag: string): string {
 }
 
 function printHelp(): void {
-  console.log(`smocker - convention-over-configuration mock server
+  console.log(`smocky - convention-over-configuration mock server
 
 Usage:
-  smocker [serve]                 Start the mock server
-  smocker check api               Validate spec against real API
-  smocker check mocks             Validate spec against local mocks
-  smocker check all               Both
+  smocky [serve]                 Start the mock server
+  smocky check api               Validate spec against real API
+  smocky check mocks             Validate spec against local mocks
+  smocky check all               Both
 
 Options:
-  --config <path>                 Path to smocker.config.ts (default ./smocker.config.ts)
+  --config <path>                 Path to smocky.config.ts (default ./smocky.config.ts)
   --port <n>                      Override port
   --base-url <url>                Override baseUrl
   --record                        Enable recorder
@@ -338,7 +330,7 @@ async function runCheckCommand(args: CliArgs): Promise<number> {
     record: args.record,
   });
   if (!config.openapi?.spec) {
-    console.error('[smocker] openapi.spec is not configured in smocker.config.ts');
+    console.error('[smocky] openapi.spec is not configured in smocky.config.ts');
     return 1;
   }
 

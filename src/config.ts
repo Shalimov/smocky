@@ -41,7 +41,7 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
   const explicit = configPath !== undefined;
   const candidates = explicit
     ? [resolve(cwd, configPath)]
-    : [resolve(cwd, './smocker.config.ts'), resolve(cwd, './mock.config.ts')];
+    : [resolve(cwd, './smocky.config.ts'), resolve(cwd, './mock.config.ts')];
 
   let userConfig: Config = {};
   let loaded = false;
@@ -54,7 +54,7 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
       userConfig = module.default ?? {};
       loaded = true;
       if (candidate.endsWith('mock.config.ts') && !explicit) {
-        console.warn('[smocker] mock.config.ts is deprecated; rename to smocker.config.ts');
+        console.warn('[smocky] mock.config.ts is deprecated; rename to smocky.config.ts');
       }
       break;
     }
@@ -115,12 +115,12 @@ function mergeOpenApiConfig(openapi: Config['openapi']): ResolvedOpenApiConfig |
   }
 
   if (!openapi.spec) {
-    throw new Error('[smocker] openapi.spec is required when openapi is set');
+    throw new Error('[smocky] openapi.spec is required when openapi is set');
   }
 
   const timeout = openapi.check?.timeout ?? 5000;
   if (timeout <= 0) {
-    throw new Error('[smocker] openapi.check.timeout must be > 0');
+    throw new Error('[smocky] openapi.check.timeout must be > 0');
   }
 
   return {
@@ -151,14 +151,14 @@ function applyEnvOverrides(config: ResolvedConfig): void {
 
 function validateConfig(config: ResolvedConfig): void {
   if (!Number.isInteger(config.port) || config.port <= 0) {
-    throw new Error(`[smocker] invalid port: ${String(config.port)}`);
+    throw new Error(`[smocky] invalid port: ${String(config.port)}`);
   }
 
   if (config.baseUrl) {
     try {
       new URL(config.baseUrl);
     } catch {
-      throw new Error(`[smocker] invalid baseUrl: ${config.baseUrl}`);
+      throw new Error(`[smocky] invalid baseUrl: ${config.baseUrl}`);
     }
   }
 }

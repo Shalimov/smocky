@@ -28,13 +28,13 @@ export async function loadHelpers(
 
     const helperName = parse(entry).name;
     if (RESERVED.has(helperName)) {
-      throw new Error(`[smocker] helper "${helperName}" collides with a reserved namespace`);
+      throw new Error(`[smocky] helper "${helperName}" collides with a reserved namespace`);
     }
     if (!VALID_NAME.test(helperName)) {
-      throw new Error(`[smocker] invalid helper name "${helperName}"`);
+      throw new Error(`[smocky] invalid helper name "${helperName}"`);
     }
     if (helpers.has(helperName)) {
-      throw new Error(`[smocker] duplicate helper "${helperName}"`);
+      throw new Error(`[smocky] duplicate helper "${helperName}"`);
     }
 
     const helperPath = resolve(absoluteDir, entry);
@@ -42,7 +42,7 @@ export async function loadHelpers(
 
     const mod = (await import(fileUrl.href)) as { default?: Helper };
     if (typeof mod.default !== 'function') {
-      throw new Error(`[smocker] helper "${helperName}" must default-export a function`);
+      throw new Error(`[smocky] helper "${helperName}" must default-export a function`);
     }
 
     helpers.set(helperName, mod.default);
@@ -56,7 +56,7 @@ async function prepareModuleImport(modulePath: string, cacheBust?: string): Prom
     return modulePath;
   }
 
-  const cacheDir = resolve(process.cwd(), '.smocker-cache', 'helpers');
+  const cacheDir = resolve(process.cwd(), '.smocky-cache', 'helpers');
   await mkdir(cacheDir, { recursive: true });
   const parsed = parse(modulePath);
   const sourceId = hashPath(modulePath);

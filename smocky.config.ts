@@ -1,4 +1,4 @@
-import { defineConfig } from 'smocker';
+import { defineConfig } from 'smocky';
 
 export default defineConfig({
   port: 3000,

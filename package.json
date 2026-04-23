@@ -1,5 +1,5 @@
 {
-  "name": "smocker",
+  "name": "smocky",
   "version": "0.1.0",
   "description": "Convention-over-configuration mock server for Bun.",
   "type": "module",
@@ -7,7 +7,7 @@
   "types": "./src/index.ts",
   "license": "MIT",
   "bin": {
-    "smocker": "./src/cli/index.ts"
+    "smocky": "./src/cli/index.ts"
   },
   "exports": {
     ".": "./src/index.ts",

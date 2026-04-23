@@ -47,7 +47,7 @@ describe('db core', () => {
 
 describe('db loader', () => {
   test('loads seed arrays into collections and ignores missing directories', async () => {
-    await withTempDir('smocker-db-loader', async (dir) => {
+    await withTempDir('smocky-db-loader', async (dir) => {
       const db = createDb();
       const seedDir = join(dir, 'db');
 
@@ -69,7 +69,7 @@ describe('db loader', () => {
   });
 
   test('throws for invalid or non-array seed files', async () => {
-    await withTempDir('smocker-db-loader-error', async (dir) => {
+    await withTempDir('smocky-db-loader-error', async (dir) => {
       const db = createDb();
       const seedDir = join(dir, 'db');
 
@@ -81,7 +81,7 @@ describe('db loader', () => {
 
 describe('db persistence', () => {
   test('debounces writes and flush persists pending data', async () => {
-    await withTempDir('smocker-db-persist', async (dir) => {
+    await withTempDir('smocky-db-persist', async (dir) => {
       const persister = createDbPersister({ dir, debounceMs: 20 });
 
       persister.schedule('users', [{ id: 'u1', name: 'Alice' }]);
@@ -94,7 +94,7 @@ describe('db persistence', () => {
   });
 
   test('db flush writes after mutations when onMutation is wired', async () => {
-    await withTempDir('smocker-db-flush', async (dir) => {
+    await withTempDir('smocky-db-flush', async (dir) => {
       const persister = createDbPersister({ dir, debounceMs: 1000 });
       const db = createDb({
         onMutation(name, items) {

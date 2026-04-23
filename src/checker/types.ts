@@ -81,11 +81,3 @@ export interface OperationSample {
   body?: unknown;
   skippedReason?: string;
 }
-
-export interface CheckerOptions {
-  timeout: number;
-  authHeaders: Record<string, string>;
-  skipPaths: RecordRule[];
-  failOnMismatch: boolean;
-  sampleData?: string;
-}

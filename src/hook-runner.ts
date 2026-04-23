@@ -54,7 +54,7 @@ export function clearHookCache(): void {
 }
 
 async function prepareHookImport(hookFile: string, version: number): Promise<string> {
-  const cacheDir = resolve(process.cwd(), '.smocker-cache', 'hooks');
+  const cacheDir = resolve(process.cwd(), '.smocky-cache', 'hooks');
   await mkdir(cacheDir, { recursive: true });
   const extension = extname(hookFile);
   const baseName = basename(hookFile, extension).replace(/[^A-Za-z0-9_-]/g, '_');

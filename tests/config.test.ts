@@ -16,7 +16,7 @@ afterEach(() => {
 
 describe('loadConfig', () => {
   test('returns defaults when the config file does not exist', async () => {
-    await withTempDir('smocker-config-missing', async (dir) => {
+    await withTempDir('smocky-config-missing', async (dir) => {
       const config = await loadConfig(join(dir, 'missing.config.ts'));
 
       expect(config.port).toBe(3000);
@@ -29,8 +29,8 @@ describe('loadConfig', () => {
   });
 
   test('merges config, lowercases global headers, applies env overrides, and resolves active config sections', async () => {
-    await withTempDir('smocker-config-merge', async (dir) => {
-      const configPath = join(dir, 'smocker.config.ts');
+    await withTempDir('smocky-config-merge', async (dir) => {
+      const configPath = join(dir, 'smocky.config.ts');
       const endpointsDir = join(dir, 'api-mocks');
       const helpersDir = join(dir, 'helpers-src');
       await writeText(
@@ -76,8 +76,8 @@ describe('loadConfig', () => {
   });
 
   test('throws on invalid baseUrl', async () => {
-    await withTempDir('smocker-config-invalid', async (dir) => {
-      const configPath = join(dir, 'smocker.config.ts');
+    await withTempDir('smocky-config-invalid', async (dir) => {
+      const configPath = join(dir, 'smocky.config.ts');
       await writeText(
         configPath,
         `export default {

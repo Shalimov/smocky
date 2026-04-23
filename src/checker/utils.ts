@@ -74,7 +74,7 @@ export function getExpectedResponse(
   return undefined;
 }
 
-export function buildConcretePath(path: string, pathParams: Record<string, string>): string {
+function buildConcretePath(path: string, pathParams: Record<string, string>): string {
   return path.replace(/\{([^}]+)\}/g, (_match, name: string) => encodeURIComponent(pathParams[name] ?? name));
 }
 

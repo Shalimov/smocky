@@ -22,8 +22,8 @@ describe('runCli', () => {
     captureConsole();
 
     await expect(runCli(['--help'])).resolves.toBe(0);
-    expect(logLines.join('\n')).toContain('smocker - convention-over-configuration mock server');
-    expect(logLines.join('\n')).toContain('smocker check api');
+    expect(logLines.join('\n')).toContain('smocky - convention-over-configuration mock server');
+    expect(logLines.join('\n')).toContain('smocky check api');
   });
 
   test('prints version and exits 0', async () => {
@@ -36,7 +36,7 @@ describe('runCli', () => {
   test('returns 1 when check is requested without openapi.spec configured', async () => {
     captureConsole();
 
-    await expect(runCli(['check', 'api', '--config', '/tmp/does-not-exist.smocker.config.ts'])).resolves.toBe(1);
+    await expect(runCli(['check', 'api', '--config', '/tmp/does-not-exist.smocky.config.ts'])).resolves.toBe(1);
     expect(errorLines.join('\n')).toContain('openapi.spec is not configured');
   });
 
@@ -69,8 +69,8 @@ describe('runCli', () => {
     });
 
     try {
-      await withTempDir('smocker-cli-check', async (dir) => {
-        const configPath = join(dir, 'smocker.config.ts');
+      await withTempDir('smocky-cli-check', async (dir) => {
+        const configPath = join(dir, 'smocky.config.ts');
         const specPath = join(dir, 'openapi.json');
         await writeText(
           configPath,

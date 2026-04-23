@@ -17,7 +17,7 @@ A hook lives in the same folder as its `response.json`. If no `hook.ts`
 ## Signature
 
 ```ts
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = async (req, res, ctx) => {
   // mutate res
@@ -77,7 +77,7 @@ export default hook;
 ```ts
 interface Ctx {
   req: MockRequest;
-  db?: Db;            // available when seeded or used via smocker.config.ts
+  db?: Db;            // available when seeded or used via smocky.config.ts
 }
 ```
 

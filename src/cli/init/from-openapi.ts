@@ -23,7 +23,7 @@ export interface FromOpenapiOptions {
 }
 
 export async function runFromOpenapi(opts: FromOpenapiOptions): Promise<number> {
-  p.intro('smocker init --from-openapi');
+  p.intro('smocky init --from-openapi');
 
   const spinner = p.spinner();
   spinner.start(`Loading spec from ${opts.source}`);
@@ -142,8 +142,8 @@ export async function runFromOpenapi(opts: FromOpenapiOptions): Promise<number> 
 
   const planResult = planEndpoints({ spec, selected: selectedOps, strategy });
 
-  // Write smocker.config.ts only if missing — we don't overwrite a user's config.
-  const configPath = join(opts.cwd, 'smocker.config.ts');
+  // Write smocky.config.ts only if missing — we don't overwrite a user's config.
+  const configPath = join(opts.cwd, 'smocky.config.ts');
   const writes: WriteResult[] = [];
   const writeSpinner = p.spinner();
   writeSpinner.start('Writing endpoints');
@@ -173,7 +173,7 @@ export async function runFromOpenapi(opts: FromOpenapiOptions): Promise<number> 
   }
 
   p.outro(
-    `Scaffolded ${planResult.plans.length} endpoint folder(s) from ${opts.source}.\nNext: bun smocker serve`,
+    `Scaffolded ${planResult.plans.length} endpoint folder(s) from ${opts.source}.\nNext: bun smocky serve`,
   );
   return 0;
 }
@@ -186,7 +186,7 @@ async function loadSpec(source: string, headers: Record<string, string>): Promis
     }
     const text = await response.text();
     // Stash to a temp file so $RefParser can resolve relative refs from the URL base.
-    const dir = await mkdtemp(join(tmpdir(), 'smocker-spec-'));
+    const dir = await mkdtemp(join(tmpdir(), 'smocky-spec-'));
     const ext = source.endsWith('.yaml') || source.endsWith('.yml') ? '.yaml' : '.json';
     const tmp = join(dir, `spec${ext}`);
     await writeFile(tmp, text, 'utf8');
@@ -249,7 +249,7 @@ function orderedMethodBlocks(
 
 function renderMinimalConfig(): string {
   return [
-    `import { defineConfig } from 'smocker';`,
+    `import { defineConfig } from 'smocky';`,
     ``,
     `export default defineConfig({`,
     `  port: 4000,`,

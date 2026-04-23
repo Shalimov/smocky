@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Smocker Example API",
+    "title": "Smocky Example API",
     "version": "1.0.0"
   },
   "paths": {

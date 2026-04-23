@@ -39,7 +39,7 @@ const baseConfig: ResolvedConfig = {
 
 describe('createResponder', () => {
   test('returns 405 with allow header when method block is missing', async () => {
-    await withTempDir('smocker-responder-405', async (dir) => {
+    await withTempDir('smocky-responder-405', async (dir) => {
       const responseFile = join(dir, 'response.json');
       await writeJson(responseFile, {
         POST: { body: { created: true } },
@@ -60,7 +60,7 @@ describe('createResponder', () => {
   });
 
   test('returns 500 for template errors', async () => {
-    await withTempDir('smocker-responder-template-error', async (dir) => {
+    await withTempDir('smocky-responder-template-error', async (dir) => {
       const responseFile = join(dir, 'response.json');
       await writeJson(responseFile, {
         GET: { body: { value: '{{ unknownHelper }}' } },
@@ -78,7 +78,7 @@ describe('createResponder', () => {
   });
 
   test('returns 500 with endpoint metadata when hook throws', async () => {
-    await withTempDir('smocker-responder-hook-error', async (dir) => {
+    await withTempDir('smocky-responder-hook-error', async (dir) => {
       const responseFile = join(dir, 'response.json');
       const hookFile = join(dir, 'hook.ts');
 
@@ -106,7 +106,7 @@ describe('createResponder', () => {
   });
 
   test('merges global headers while allowing response headers to win', async () => {
-    await withTempDir('smocker-responder-headers', async (dir) => {
+    await withTempDir('smocky-responder-headers', async (dir) => {
       const responseFile = join(dir, 'response.json');
       await writeJson(responseFile, {
         GET: {

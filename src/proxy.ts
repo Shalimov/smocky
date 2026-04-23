@@ -19,7 +19,7 @@ export function createProxy(baseUrl: string, opts?: { timeoutMs?: number }): Pro
     try {
       upstreamBase = new URL(baseUrl);
     } catch {
-      console.error(`[smocker] invalid baseUrl: ${baseUrl}`);
+      console.error(`[smocky] invalid baseUrl: ${baseUrl}`);
     }
   }
 

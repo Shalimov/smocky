@@ -1,4 +1,4 @@
-import type { Hook } from 'smocker';
+import type { Hook } from 'smocky';
 
 const hook: Hook = (req, res, ctx) => {
   const users = ctx.db?.collection<{ id: string; name: string; active?: boolean }>('users');

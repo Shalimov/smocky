@@ -4,13 +4,13 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // src/cli/init -> ../../.. = repo root, where templates/ lives
-export const TEMPLATES_ROOT = resolve(HERE, '../../..', 'templates');
+const TEMPLATES_ROOT = resolve(HERE, '../../..', 'templates');
 
-export interface WriteFileOpts {
+interface WriteFileOpts {
   force?: boolean;
 }
 
-export type WriteOutcome = 'wrote' | 'skipped' | 'overwrote';
+type WriteOutcome = 'wrote' | 'skipped' | 'overwrote';
 
 export interface WriteResult {
   path: string;
@@ -52,7 +52,7 @@ export async function pathExists(p: string): Promise<boolean> {
 }
 
 function interpolate(text: string, vars: Record<string, string>): string {
-  // Use <%var%> so we don't collide with smocker's runtime {{...}} syntax.
+  // Use <%var%> so we don't collide with smocky's runtime {{...}} syntax.
   return text.replace(/<%\s*([A-Za-z0-9_]+)\s*%>/g, (_match, key: string) => {
     return key in vars ? vars[key]! : `<%${key}%>`;
   });
