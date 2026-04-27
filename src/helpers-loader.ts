@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { parse, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -9,7 +9,6 @@ const VALID_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
 
 export async function loadHelpers(
   dir: string,
-  options?: { cacheBust?: string },
 ): Promise<Map<string, Helper>> {
   const helpers = new Map<string, Helper>();
   const absoluteDir = resolve(dir);
@@ -17,7 +16,11 @@ export async function loadHelpers(
   let entries: string[];
   try {
     entries = await readdir(absoluteDir, 'utf8');
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return helpers;
+    }
+    console.warn(`[smocky] failed to read helpers directory: ${error instanceof Error ? error.message : String(error)}`);
     return helpers;
   }
 
@@ -38,9 +41,14 @@ export async function loadHelpers(
     }
 
     const helperPath = resolve(absoluteDir, entry);
-    const fileUrl = pathToFileURL(await prepareModuleImport(helperPath, options?.cacheBust));
+    const fileUrl = pathToFileURL(helperPath);
 
-    const mod = (await import(fileUrl.href)) as { default?: Helper };
+    let mod: { default?: Helper };
+    try {
+      mod = (await import(fileUrl.href)) as { default?: Helper };
+    } catch (error) {
+      throw new Error(`[smocky] failed to load helper "${helperName}": ${error instanceof Error ? error.message : String(error)}`);
+    }
     if (typeof mod.default !== 'function') {
       throw new Error(`[smocky] helper "${helperName}" must default-export a function`);
     }
@@ -49,36 +57,4 @@ export async function loadHelpers(
   }
 
   return helpers;
-}
-
-async function prepareModuleImport(modulePath: string, cacheBust?: string): Promise<string> {
-  if (!cacheBust) {
-    return modulePath;
-  }
-
-  const cacheDir = resolve(process.cwd(), '.smocky-cache', 'helpers');
-  await mkdir(cacheDir, { recursive: true });
-  const parsed = parse(modulePath);
-  const sourceId = hashPath(modulePath);
-  const targetPath = resolve(cacheDir, `${parsed.name}.${sourceId}.${cacheBust}${parsed.ext}`);
-  await copyFile(modulePath, targetPath);
-  await cleanupOldCopies(cacheDir, `${parsed.name}.${sourceId}.`, targetPath);
-  return targetPath;
-}
-
-async function cleanupOldCopies(cacheDir: string, prefix: string, keepPath: string): Promise<void> {
-  const entries = await readdir(cacheDir, 'utf8');
-  await Promise.all(
-    entries
-      .filter((entry) => entry.startsWith(prefix) && resolve(cacheDir, entry) !== keepPath)
-      .map((entry) => rm(resolve(cacheDir, entry), { force: true })),
-  );
-}
-
-function hashPath(value: string): string {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash.toString(36);
 }

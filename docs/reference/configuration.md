@@ -88,6 +88,9 @@ Headers merged into **every mocked response**. Per-response headers take
 precedence. Designed primarily for CORS, but useful for any cross-cutting
 header. Proxied responses are unaffected.
 
+All header values are sanitized: `\r` and `\n` characters are stripped to
+prevent CRLF injection. Header keys are lowercased and trimmed.
+
 These headers are also returned on auto-handled `OPTIONS` preflight
 requests (Smocky replies with `204` and `globalHeaders`).
 

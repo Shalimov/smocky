@@ -43,7 +43,7 @@ endpoint tree from an OpenAPI document instead.
 ## Reference
 
 - [Configuration](reference/configuration.md) — full `smocky.config.ts` schema
-- [CLI & Library API](reference/api.md) — `smocky` command and `startServer`
+- [CLI & Library API](reference/api.md) — `smocky` command, `startServer`, and `Smocky` class
 
 ## Project Layout
 

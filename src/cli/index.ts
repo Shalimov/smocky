@@ -1,63 +1,108 @@
 #!/usr/bin/env bun
 
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
 import { defineCommand, runMain } from 'citty';
 
-import { runCli } from '../index';
+import { startServer } from '../index';
+import { runCheckCommand } from '../checker/orchestrator';
 import { runInit } from './commands/init';
+
+async function readVersion(): Promise<string> {
+  const packageJsonPath = resolve(import.meta.dir, '../../package.json');
+  const raw = await readFile(packageJsonPath, 'utf8');
+  const pkg = JSON.parse(raw) as { version?: string };
+  return pkg.version ?? '0.0.0';
+}
+
+function installSignalHandlers(handle: { stop(): Promise<void> }): void {
+  const shutdown = async () => {
+    await handle.stop();
+    process.exit(0);
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+function collectRepeated(rawArgs: string[] | undefined, flag: string): string[] {
+  if (!rawArgs) return [];
+  const out: string[] = [];
+  for (let i = 0; i < rawArgs.length; i += 1) {
+    if (rawArgs[i] === flag) {
+      const next = rawArgs[i + 1];
+      if (next !== undefined) out.push(next);
+    } else if (rawArgs[i]?.startsWith(`${flag}=`)) {
+      out.push(rawArgs[i]!.slice(flag.length + 1));
+    }
+  }
+  return out;
+}
 
 const main = defineCommand({
   meta: {
     name: 'smocky',
     description: 'Convention-over-configuration mock server for Bun.',
   },
+  args: {
+    version: { type: 'boolean', description: 'Show version' },
+  },
   subCommands: {
-    serve: defineCommand({
+    serve: {
       meta: { name: 'serve', description: 'Start the mock server' },
       args: {
         config: { type: 'string', description: 'Path to smocky.config.ts' },
         port: { type: 'string', description: 'Override port' },
         'base-url': { type: 'string', description: 'Override baseUrl' },
-        record: { type: 'boolean', description: 'Enable recorder', default: false },
+        record: { type: 'boolean', description: 'Enable recorder' },
       },
-      async run({ args }) {
-        const argv = ['serve'];
-        if (args.config) argv.push('--config', String(args.config));
-        if (args.port) argv.push('--port', String(args.port));
-        if (args['base-url']) argv.push('--base-url', String(args['base-url']));
-        if (args.record) argv.push('--record');
-        const code = await runCli(argv);
-        if (typeof code === 'number') process.exit(code);
-        // Server started; keep the event loop alive forever so SIGINT/SIGTERM
-        // handlers (installed in runCli) can shut it down cleanly.
-        await new Promise<never>(() => {});
+      async run({ args, rawArgs }) {
+        try {
+          const handle = await startServer({
+            config: args.config as string | undefined,
+            port: args.port ? Number(args.port) : undefined,
+            baseUrl: (args['base-url'] as string | undefined) ?? undefined,
+            record: rawArgs.includes('--record') ? true : undefined,
+          });
+          installSignalHandlers(handle);
+          await new Promise<never>(() => {});
+        } catch (error) {
+          console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
+          process.exit(2);
+        }
       },
-    }),
-    check: defineCommand({
+    },
+    check: {
       meta: { name: 'check', description: 'Validate spec against API and/or local mocks' },
       args: {
         target: { type: 'positional', description: 'api | mocks | all', required: false },
         config: { type: 'string', description: 'Path to smocky.config.ts' },
         port: { type: 'string', description: 'Override port' },
         'base-url': { type: 'string', description: 'Override baseUrl' },
-        fail: { type: 'boolean', description: 'Exit non-zero on mismatch', default: false },
+        fail: { type: 'boolean', description: 'Exit non-zero on mismatch' },
       },
-      async run({ args }) {
-        const argv = ['check'];
+      async run({ args, rawArgs }) {
         const target = (args.target as string | undefined) ?? 'all';
         if (!['api', 'mocks', 'all'].includes(target)) {
           console.error(`[smocky] unknown check target: ${target}`);
           process.exit(1);
         }
-        argv.push(target);
-        if (args.config) argv.push('--config', String(args.config));
-        if (args.port) argv.push('--port', String(args.port));
-        if (args['base-url']) argv.push('--base-url', String(args['base-url']));
-        if (args.fail) argv.push('--fail');
-        const code = await runCli(argv);
-        if (typeof code === 'number') process.exit(code);
+        try {
+          const code = await runCheckCommand({
+            config: args.config as string | undefined,
+            port: args.port ? Number(args.port) : undefined,
+            baseUrl: (args['base-url'] as string | undefined) ?? undefined,
+            fail: rawArgs.includes('--fail') ? true : undefined,
+            target: target as 'api' | 'mocks' | 'all',
+          });
+          process.exit(code);
+        } catch (error) {
+          console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
+          process.exit(1);
+        }
       },
-    }),
-    init: defineCommand({
+    },
+    init: {
       meta: { name: 'init', description: 'Scaffold a new Smocky project' },
       args: {
         'from-openapi': {
@@ -106,27 +151,22 @@ const main = defineCommand({
         });
         process.exit(code);
       },
-    }),
+    },
   },
-  async run() {
-    // No subcommand: behave like the old default (start server).
-    const code = await runCli(process.argv.slice(2));
-    if (typeof code === 'number') process.exit(code);
+  async run({ args }) {
+    if (args.version) {
+      console.log(await readVersion());
+      process.exit(0);
+    }
+    try {
+      const handle = await startServer();
+      installSignalHandlers(handle);
+      await new Promise<never>(() => {});
+    } catch (error) {
+      console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(2);
+    }
   },
 });
-
-function collectRepeated(rawArgs: string[] | undefined, flag: string): string[] {
-  if (!rawArgs) return [];
-  const out: string[] = [];
-  for (let i = 0; i < rawArgs.length; i += 1) {
-    if (rawArgs[i] === flag) {
-      const next = rawArgs[i + 1];
-      if (next !== undefined) out.push(next);
-    } else if (rawArgs[i]?.startsWith(`${flag}=`)) {
-      out.push(rawArgs[i]!.slice(flag.length + 1));
-    }
-  }
-  return out;
-}
 
 await runMain(main);

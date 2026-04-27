@@ -91,65 +91,6 @@ describe('startServer', () => {
     });
   });
 
-  test('reload rescans helpers and routes', async () => {
-    await withTempDir('smocky-reload', async (dir) => {
-      const appPort = await getFreePort();
-      const endpointsDir = join(dir, 'endpoints');
-      const helpersDir = join(dir, 'helpers');
-      const configPath = join(dir, 'smocky.config.ts');
-
-      await writeText(
-        join(helpersDir, 'guid.ts'),
-        `export default function guid() {
-  return 'v1';
-}\n`,
-      );
-      await writeJson(join(endpointsDir, 'alpha', 'response.json'), {
-        GET: { body: { value: '{{ guid }}' } },
-      });
-      await writeText(
-        configPath,
-        `export default {
-  port: ${appPort},
-  endpointsDir: ${JSON.stringify(endpointsDir)},
-  helpersDir: ${JSON.stringify(helpersDir)},
-  globalHeaders: {},
-  record: {
-    enabled: false,
-    outputDir: ${JSON.stringify(join(dir, 'recorded'))}
-  }
-};\n`,
-      );
-
-      const server = await startServer({ config: configPath, port: appPort });
-
-      try {
-        const before = await fetch(`${server.url}/alpha`);
-        expect(await before.json()).toEqual({ value: 'v1' });
-
-        await writeText(
-          join(helpersDir, 'guid.ts'),
-          `export default function guid() {
-  return 'v2';
-}\n`,
-        );
-        await writeJson(join(endpointsDir, 'beta', 'response.json'), {
-          GET: { body: { created: true, token: '{{ guid }}' } },
-        });
-
-        await server.reload();
-
-        const alpha = await fetch(`${server.url}/alpha`);
-        const beta = await fetch(`${server.url}/beta`);
-
-        expect(await alpha.json()).toEqual({ value: 'v2' });
-        expect(await beta.json()).toEqual({ created: true, token: 'v2' });
-      } finally {
-        await server.stop();
-      }
-    });
-  });
-
   test('returns 404 for unmatched routes when baseUrl is not configured', async () => {
     await withTempDir('smocky-no-base-url', async (dir) => {
       const appPort = await getFreePort();

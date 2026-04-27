@@ -87,8 +87,10 @@ Smocky is importable from the `smocky` package:
 
 ```ts
 import {
+  Smocky,
   startServer,
   defineConfig,
+  type SmockyHandle,
   type Config,
   type Hook,
   type Helper,
@@ -96,6 +98,52 @@ import {
   type MockResponse,
   type Ctx,
 } from 'smocky';
+```
+
+### `Smocky` (class)
+
+The Smocky class provides the core programmatic API with workspace
+support. `startServer()` delegates to it internally.
+
+```ts
+import { Smocky } from 'smocky';
+
+const instance = await Smocky.start({
+  port: 4000,
+  baseUrl: 'http://api.local',
+  workspace: 'user-tests',       // optional workspace
+  // workspaces: ['ws-a', 'ws-b'], // or multi-workspace
+});
+
+console.log(instance.url);       // http://localhost:4000
+await instance.stop();
+```
+
+#### `SmockyOptions`
+
+```ts
+interface SmockyOptions {
+  config?: string;
+  port?: number;
+  baseUrl?: string;
+  record?: Partial<RecordConfig>;
+  endpointsDir?: string;
+  helpersDir?: string;
+  globalHeaders?: Record<string, string>;
+  workspace?: string;
+  workspaces?: string[];
+  db?: Partial<DbConfig>;
+}
+```
+
+#### `SmockyHandle`
+
+```ts
+interface SmockyHandle {
+  port: number;
+  url: string;                          // e.g. http://localhost:4000
+  stop(): Promise<void>;                // flushes the DB before stopping
+}
 ```
 
 ### `startServer(options?)`
@@ -135,12 +183,8 @@ interface ServerHandle {
   port: number;
   url: string;                          // e.g. http://localhost:4000
   stop(): Promise<void>;                // flushes the DB before stopping
-  reload(): Promise<void>;              // re-scan endpoints + helpers
 }
 ```
-
-`reload()` rebuilds the router, helpers cache, and hook cache without
-restarting the HTTP server. Useful when integrated into a watcher.
 
 ### `defineConfig(config)`
 
@@ -217,12 +261,6 @@ afterAll(async () => {
   await server.stop();
 });
 ```
-
-### Pair with a Vite/Next.js dev server
-
-Run Smocky on a different port and point the frontend at it via an env
-variable. Use `reload()` from a file watcher to pick up new mocks without
-restarting.
 
 ## Versioning
 

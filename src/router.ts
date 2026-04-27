@@ -18,9 +18,30 @@ export interface MatchResult {
   params: Record<string, string>;
 }
 
+export interface SourceHandle {
+  id: string;
+  priority: number;
+}
+
+interface Source {
+  id: string;
+  priority: number;
+  routes: Route[];
+}
+
+interface BucketedSource extends Source {
+  buckets: Map<number, Route[]>;
+}
+
 export interface Router {
   match(method: string, path: string): MatchResult | null;
   routes(): Route[];
+  addSource(routes: Route[], priority: number): SourceHandle;
+  removeSource(sourceId: string): void;
+}
+
+export function createEmptyRouter(): Router {
+  return createRouter([]);
 }
 
 export async function buildRouter(endpointsDir: string): Promise<Router> {
@@ -29,11 +50,29 @@ export async function buildRouter(endpointsDir: string): Promise<Router> {
 
   try {
     await walk(absoluteEndpointsDir, absoluteEndpointsDir, routes);
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
     return createRouter([]);
   }
 
   return createRouter(routes);
+}
+
+export async function scanRoutes(dir: string): Promise<Route[]> {
+  const routes: Route[] = [];
+  const absoluteDir = resolve(dir);
+
+  try {
+    await walk(absoluteDir, absoluteDir, routes);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  return routes;
 }
 
 async function walk(root: string, currentDir: string, routes: Route[]): Promise<void> {
@@ -78,51 +117,105 @@ async function loadMethods(responseFile: string): Promise<Set<string>> {
   return new Set(Object.keys(definition).map((method) => method.toUpperCase()));
 }
 
-function createRouter(routes: Route[]): Router {
-  const sortedRoutes = [...routes].sort((left, right) => right.specificity - left.specificity);
-  const buckets = new Map<number, Route[]>();
+function createRouter(initialRoutes: Route[]): Router {
+  let nextSourceId = 1;
+  const sources: BucketedSource[] = [];
 
-  for (const route of sortedRoutes) {
-    const bucket = buckets.get(route.pattern.length) ?? [];
-    bucket.push(route);
-    buckets.set(route.pattern.length, bucket);
+  function bucketRoutes(routes: Route[]): Map<number, Route[]> {
+    const sorted = [...routes].sort((left, right) => right.specificity - left.specificity);
+    const buckets = new Map<number, Route[]>();
+
+    for (const route of sorted) {
+      const bucket = buckets.get(route.pattern.length) ?? [];
+      bucket.push(route);
+      buckets.set(route.pattern.length, bucket);
+    }
+
+    return buckets;
   }
 
-  return {
-    match(_method: string, path: string): MatchResult | null {
-      const requestSegments = normalizePath(path);
-      const candidates = buckets.get(requestSegments.length) ?? [];
+  function findMatch(method: string, path: string): MatchResult | null {
+    const requestSegments = normalizePath(path);
+    const upperMethod = method.toUpperCase();
+    const candidates = sources
+      .filter((source) => source.buckets.has(requestSegments.length))
+      .flatMap((source) => {
+        const bucket = source.buckets.get(requestSegments.length) ?? [];
+        return bucket.map((route) => ({ route, sourcePriority: source.priority }));
+      });
 
-      for (const route of candidates) {
-        const params: Record<string, string> = {};
-        let matched = true;
+      const sortedCandidates = candidates.sort((left, right) => {
+        const prioDiff = right.sourcePriority - left.sourcePriority;
+        if (prioDiff !== 0) {
+          return prioDiff;
+        }
+        return right.route.specificity - left.route.specificity;
+      });
 
-        for (const [index, segment] of route.pattern.entries()) {
-          const actual = requestSegments[index];
-          if (segment.startsWith('_')) {
-            if (actual === undefined) {
-              matched = false;
-              break;
-            }
-            params[segment.slice(1)] = actual;
-            continue;
-          }
+    for (const { route } of sortedCandidates) {
+      if (!route.methods.has(upperMethod)) {
+        continue;
+      }
 
-          if (segment !== actual) {
+      const params: Record<string, string> = {};
+      let matched = true;
+
+      for (const [index, segment] of route.pattern.entries()) {
+        const actual = requestSegments[index];
+        if (segment.startsWith('_')) {
+          if (actual === undefined) {
             matched = false;
             break;
           }
+          params[segment.slice(1)] = actual;
+          continue;
         }
 
-        if (matched) {
-          return { route, params };
+        if (segment !== actual) {
+          matched = false;
+          break;
         }
       }
 
-      return null;
+      if (matched) {
+        return { route, params };
+      }
+    }
+
+    return null;
+  }
+
+  if (initialRoutes.length > 0) {
+    sources.push({
+      id: `source-${nextSourceId++}`,
+      priority: 0,
+      routes: initialRoutes,
+      buckets: bucketRoutes(initialRoutes),
+    });
+  }
+
+  return {
+    match(method: string, path: string): MatchResult | null {
+      return findMatch(method, path);
     },
     routes(): Route[] {
-      return [...sortedRoutes];
+      return sources.flatMap((source) => source.routes);
+    },
+    addSource(routes: Route[], priority: number): SourceHandle {
+      const id = `source-${nextSourceId++}`;
+      sources.push({
+        id,
+        priority,
+        routes,
+        buckets: bucketRoutes(routes),
+      });
+      return { id, priority };
+    },
+    removeSource(sourceId: string): void {
+      const index = sources.findIndex((source) => source.id === sourceId);
+      if (index !== -1) {
+        sources.splice(index, 1);
+      }
     },
   };
 }

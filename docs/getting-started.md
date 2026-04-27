@@ -120,9 +120,7 @@ You should see something like:
   record:    disabled
 ```
 
-The server stays in the foreground until you Ctrl-C it. Edits to files
-under `endpoints/` and `helpers/` are picked up on the next request —
-no restart required.
+The server stays in the foreground until you Ctrl-C it.
 
 Common flags:
 
@@ -218,7 +216,7 @@ Then use it in any `response.json`:
 }
 ```
 
-Helpers are loaded at server startup; restart after adding one.
+Helpers are loaded at server startup; restart after adding or editing one.
 
 ### A hook — `endpoints/users/_id/hook.ts`
 

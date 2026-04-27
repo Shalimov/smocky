@@ -148,6 +148,10 @@ function tokenizeExpression(expression: string): { head: string; args: string[] 
 }
 
 function resolveRequestPath(path: string, ctx: Ctx): unknown {
+  if (!ctx.req) {
+    return undefined;
+  }
+
   if (path === 'method') {
     return ctx.req.method;
   }
@@ -182,6 +186,9 @@ function readPath(value: unknown, path: string[]): unknown {
       return undefined;
     }
     if (typeof current !== 'object') {
+      return undefined;
+    }
+    if (segment === '__proto__' || segment === 'constructor' || segment === 'prototype') {
       return undefined;
     }
 

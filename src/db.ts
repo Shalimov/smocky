@@ -69,7 +69,7 @@ export function createDb(options: CreateDbOptions = {}): Db {
           const record = cloneRecord(item as Record<string, unknown>);
           const stored: Record<string, unknown> = {
             ...record,
-            id: typeof record.id === 'string' && record.id ? record.id : createId(options.autoId),
+            id: typeof record.id === 'string' && record.id ? record.id : createId(),
           };
           getItems(name).push(stored);
           notifyMutation(name);
@@ -122,7 +122,7 @@ export function createDb(options: CreateDbOptions = {}): Db {
   };
 }
 
-function createId(autoId: 'uuid' | undefined): string {
+function createId(): string {
   return crypto.randomUUID();
 }
 

@@ -1,59 +1,47 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 
-import { runCli } from '../src/index';
+import { runCheckCommand } from '../src/checker/orchestrator';
+import { startServer } from '../src/index';
 import { withTempDir, writeText, getFreePort } from './test-utils';
 
 let originalLog: typeof console.log;
 let originalError: typeof console.error;
+let captured = false;
 
 const logLines: string[] = [];
 const errorLines: string[] = [];
 
 afterEach(() => {
-  console.log = originalLog;
-  console.error = originalError;
+  if (!captured) return;
+  console.log = originalLog!;
+  console.error = originalError!;
   logLines.length = 0;
   errorLines.length = 0;
+  captured = false;
 });
 
-describe('runCli', () => {
-  test('prints help and exits 0', async () => {
-    captureConsole();
-
-    await expect(runCli(['--help'])).resolves.toBe(0);
-    expect(logLines.join('\n')).toContain('smocky - convention-over-configuration mock server');
-    expect(logLines.join('\n')).toContain('smocky check api');
+describe('CLI commands', () => {
+  test('startServer rejects invalid port', async () => {
+    await expect(startServer({ port: -1 })).rejects.toThrow('invalid port');
   });
 
-  test('prints version and exits 0', async () => {
-    captureConsole();
-
-    await expect(runCli(['--version'])).resolves.toBe(0);
-    expect(logLines).toContain('0.1.0');
+  test('startServer rejects invalid baseUrl', async () => {
+    await expect(startServer({ baseUrl: 'not-a-url' })).rejects.toThrow('invalid baseUrl');
   });
 
-  test('returns 1 when check is requested without openapi.spec configured', async () => {
+  test('runCheckCommand returns 1 when openapi.spec is not configured', async () => {
     captureConsole();
 
-    await expect(runCli(['check', 'api', '--config', '/tmp/does-not-exist.smocky.config.ts'])).resolves.toBe(1);
+    const code = await runCheckCommand({
+      config: '/tmp/does-not-exist.smocky.config.ts',
+      target: 'api',
+    });
+    expect(code).toBe(1);
     expect(errorLines.join('\n')).toContain('openapi.spec is not configured');
   });
 
-  test('returns 1 and logs parse errors for bad arguments', async () => {
-    captureConsole();
-
-    await expect(runCli(['--port'])).resolves.toBe(1);
-    expect(errorLines.join('\n')).toContain('missing value for --port');
-
-    logLines.length = 0;
-    errorLines.length = 0;
-
-    await expect(runCli(['check', 'wat'])).resolves.toBe(1);
-    expect(errorLines.join('\n')).toContain('unknown check target: wat');
-  });
-
-  test('check api respects --base-url override', async () => {
+  test('runCheckCommand check api respects baseUrl override', async () => {
     captureConsole();
 
     const port = await getFreePort();
@@ -118,9 +106,12 @@ describe('runCli', () => {
           }),
         );
 
-        await expect(
-          runCli(['check', 'api', '--config', configPath, '--base-url', `http://127.0.0.1:${port}`]),
-        ).resolves.toBe(0);
+        const code = await runCheckCommand({
+          config: configPath,
+          baseUrl: `http://127.0.0.1:${port}`,
+          target: 'api',
+        });
+        expect(code).toBe(0);
       });
     } finally {
       upstream.stop(true);
@@ -134,6 +125,7 @@ describe('runCli', () => {
 function captureConsole(): void {
   originalLog = console.log;
   originalError = console.error;
+  captured = true;
 
   console.log = (...args: unknown[]) => {
     logLines.push(args.map(String).join(' '));

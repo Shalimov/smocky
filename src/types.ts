@@ -91,6 +91,8 @@ export interface Config {
   record?: RecordConfig;
   db?: DbConfig;
   openapi?: OpenApiConfig;
+  workspace?: string;
+  workspaces?: string[];
 }
 
 export interface ResolvedConfig {
@@ -102,6 +104,21 @@ export interface ResolvedConfig {
   record: ResolvedRecordConfig;
   db: ResolvedDbConfig;
   openapi?: ResolvedOpenApiConfig;
+  workspace?: string;
+  workspaces?: string[];
+}
+
+export interface SmockyOptions {
+  config?: string;
+  port?: number;
+  baseUrl?: string;
+  endpointsDir?: string;
+  helpersDir?: string;
+  globalHeaders?: Record<string, string>;
+  record?: RecordConfig;
+  db?: DbConfig;
+  workspace?: string;
+  workspaces?: string[];
 }
 
 export interface ResponseMethodBlock {

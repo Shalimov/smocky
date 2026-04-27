@@ -129,6 +129,302 @@ describe('planEndpoints', () => {
   });
 });
 
+describe('generateBodyFromSchema (property-level examples)', () => {
+  test('extracts property-level examples when no root example exists', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/users': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['id', 'name'],
+                      properties: {
+                        id: { type: 'integer', example: 1 },
+                        name: { type: 'string', example: 'Alice' },
+                        optionalField: { type: 'string', example: 'present' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.warnings).toEqual([]);
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({
+      id: 1,
+      name: 'Alice',
+      optionalField: 'present',
+    });
+  });
+
+  test('falls back to default when property has no example', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        label: { type: 'string', default: 'default-label' },
+                        count: { type: 'integer', example: 42 },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({
+      label: 'default-label',
+      count: 42,
+    });
+  });
+
+  test('handles nested objects with property examples', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/profiles': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        user: {
+                          type: 'object',
+                          properties: {
+                            name: { type: 'string', example: 'Bob' },
+                            age: { type: 'integer', example: 30 },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({
+      user: { name: 'Bob', age: 30 },
+    });
+  });
+
+  test('handles allOf with property examples', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/combos': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      allOf: [
+                        {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'integer', example: 99 },
+                          },
+                        },
+                        {
+                          type: 'object',
+                          properties: {
+                            name: { type: 'string', example: 'combo-name' },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({
+      id: 99,
+      name: 'combo-name',
+    });
+  });
+});
+
+describe('required skeleton fallback', () => {
+  test('uses required skeleton when jsf is disabled and no property examples', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/bare': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['id', 'name'],
+                      properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        optionalTag: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    const body = result.plans[0]!.methodBlocks.GET!.body as Record<string, unknown>;
+    expect(body).toHaveProperty('id', 0);
+    expect(body).toHaveProperty('name', 'string');
+    expect(body).not.toHaveProperty('optionalTag');
+  });
+
+  test('returns {} when no required properties and no examples (faker disabled)', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/empty': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        something: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({});
+  });
+});
+
+describe('alwaysFakeOptionals', () => {
+  test('jsf includes optional properties with alwaysFakeOptionals=true', () => {
+    const spec: OpenApiSpec = {
+      openapi: '3.0.0',
+      info: { title: 'x', version: '1' },
+      paths: {
+        '/things': {
+          get: {
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['id'],
+                      properties: {
+                        id: { type: 'integer', example: 1 },
+                        note: { type: 'string', example: 'hello' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    // with useExamples=true the property walker should grab both
+    const ops = listOperations(spec);
+    const result = planEndpoints({
+      spec,
+      selected: ops,
+      strategy: { useExamples: true, useFaker: false, emptyForUnsupported: false },
+    });
+    expect(result.plans[0]!.methodBlocks.GET!.body).toEqual({
+      id: 1,
+      note: 'hello',
+    });
+  });
+});
+
 describe('listOpsByTag', () => {
   test('puts untagged ops in (untagged) bucket and sorts', () => {
     const groups = listOpsByTag(fixtureSpec);

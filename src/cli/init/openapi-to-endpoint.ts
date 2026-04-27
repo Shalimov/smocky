@@ -8,7 +8,7 @@ import type {
 import { listOperations } from '../../checker/utils';
 
 jsf.option({
-  alwaysFakeOptionals: false,
+  alwaysFakeOptionals: true,
   useDefaultValue: true,
   useExamplesValue: true,
   failOnInvalidTypes: false,
@@ -164,20 +164,176 @@ function generateBody(
     if (media.example !== undefined) return media.example;
     const fromExamples = pickFirstExample(media.examples);
     if (fromExamples !== undefined) return fromExamples;
+
+    if (media.schema) {
+      const fromProperties = generateBodyFromSchema(media.schema);
+      if (fromProperties !== undefined && hasContent(fromProperties)) {
+        return fromProperties;
+      }
+    }
   }
 
   if (strategy.useFaker && media.schema) {
     try {
-      return jsf.generate(media.schema as object);
+      const generated = jsf.generate(media.schema as object);
+      if (generated !== undefined && hasContent(generated)) {
+        return generated;
+      }
     } catch (err) {
       plan.warnings.push(
-        `! ${desc.method} ${desc.path}: schema generation failed (${err instanceof Error ? err.message : String(err)}), body left as {}`,
+        `! ${desc.method} ${desc.path}: schema generation failed (${err instanceof Error ? err.message : String(err)}), fallback to required skeleton`,
       );
-      return {};
+    }
+  }
+
+  if (media.schema) {
+    const skeleton = generateRequiredSkeleton(media.schema);
+    if (skeleton !== undefined && hasContent(skeleton)) {
+      return skeleton;
     }
   }
 
   return {};
+}
+
+function hasContent(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return true;
+  if (Array.isArray(value)) return value.length > 0;
+  return Object.keys(value as Record<string, unknown>).length > 0;
+}
+
+function generateBodyFromSchema(schema: Record<string, unknown>): unknown {
+  const allOf = schema.allOf as Record<string, unknown>[] | undefined;
+  if (allOf && allOf.length > 0) {
+    const merged: Record<string, unknown> = {};
+    for (const sub of allOf) {
+      const subResult = generateBodyFromSchema(sub);
+      if (subResult && typeof subResult === 'object' && !Array.isArray(subResult)) {
+        Object.assign(merged, subResult);
+      }
+    }
+    if (Object.keys(merged).length > 0) return merged;
+  }
+
+  const oneOf = schema.oneOf as Record<string, unknown>[] | undefined;
+  if (oneOf && oneOf.length > 0) {
+    const body = generateBodyFromSchema(oneOf[0]!);
+    if (body !== undefined) return body;
+  }
+
+  const anyOf = schema.anyOf as Record<string, unknown>[] | undefined;
+  if (anyOf && anyOf.length > 0) {
+    const body = generateBodyFromSchema(anyOf[0]!);
+    if (body !== undefined) return body;
+  }
+
+  if (schema.example !== undefined) return schema.example;
+  if (schema.default !== undefined) return schema.default;
+
+  const type = schema.type;
+
+  if (type === 'object' || schema.properties) {
+    return walkObjectSchema(schema);
+  }
+
+  if (type === 'array') {
+    const items = schema.items as Record<string, unknown> | undefined;
+    if (items) {
+      const item = generateBodyFromSchema(items);
+      if (item !== undefined) return [item];
+    }
+    return [];
+  }
+
+  return undefined;
+}
+
+function walkObjectSchema(schema: Record<string, unknown>): Record<string, unknown> {
+  const properties = schema.properties as Record<string, unknown> | undefined;
+  if (!properties) return {};
+
+  const result: Record<string, unknown> = {};
+  for (const [key, prop] of Object.entries(properties)) {
+    const propSchema = prop as Record<string, unknown>;
+    const value = generateBodyFromSchema(propSchema);
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+function generateRequiredSkeleton(schema: Record<string, unknown>): unknown {
+  const result = collectOwnRequired(schema);
+
+  const type = schema.type;
+
+  if (type === 'array' && schema.items) {
+    const item = generateRequiredSkeleton(schema.items as Record<string, unknown>);
+    if (item !== undefined) return [item];
+    return [];
+  }
+
+  if (result && Object.keys(result).length > 0) return result;
+
+  return undefined;
+}
+
+function collectOwnRequired(schema: Record<string, unknown>): Record<string, unknown> | undefined {
+  const merged: Record<string, unknown> = {};
+
+  const allOf = schema.allOf as Record<string, unknown>[] | undefined;
+  if (allOf && allOf.length > 0) {
+    for (const sub of allOf) {
+      const subResult = collectOwnRequired(sub);
+      if (subResult && typeof subResult === 'object' && !Array.isArray(subResult)) {
+        Object.assign(merged, subResult);
+      }
+    }
+  } else {
+    const oneOf = schema.oneOf as Record<string, unknown>[] | undefined;
+    if (oneOf && oneOf.length > 0) {
+      const sub = collectOwnRequired(oneOf[0] ?? {});
+      if (sub) Object.assign(merged, sub);
+    } else {
+      const anyOf = schema.anyOf as Record<string, unknown>[] | undefined;
+      if (anyOf && anyOf.length > 0) {
+        const sub = collectOwnRequired(anyOf[0] ?? {});
+        if (sub) Object.assign(merged, sub);
+      }
+    }
+  }
+
+  if (schema.type === 'object' || schema.properties) {
+    const properties = schema.properties as Record<string, unknown> | undefined;
+    if (properties) {
+      const required = new Set<string>(
+        Array.isArray(schema.required) ? (schema.required as string[]) : [],
+      );
+      for (const key of required) {
+        if (!(key in merged)) {
+          const prop = properties[key] as Record<string, unknown> | undefined;
+          if (prop) {
+            merged[key] = primitiveDefault(prop.type as string | undefined);
+          }
+        }
+      }
+    }
+  }
+
+  return merged;
+}
+
+function primitiveDefault(type?: string): unknown {
+  switch (type) {
+    case 'string':  return 'string';
+    case 'integer':
+    case 'number':  return 0;
+    case 'boolean': return false;
+    case 'array':   return [];
+    case 'object':  return {};
+    default:        return null;
+  }
 }
 
 function pickFirstExample(examples?: Record<string, { value?: unknown }>): unknown {

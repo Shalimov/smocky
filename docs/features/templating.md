@@ -133,3 +133,11 @@ two consecutive braces.
 | Helper throws                      | 500 with `TemplateError` (cause attached)|
 | `req.body` accessed but no body    | Resolves to `undefined`                  |
 | `db.*` mutation in template        | 500 with "use a hook" message            |
+| `__proto__`/`constructor`/`prototype` key | Resolves to `undefined` (blocked) |
+
+## Security
+
+- Header values produced by template rendering are sanitized: `\r` and
+  `\n` characters are stripped to prevent CRLF header injection.
+- Object key traversal blocks `__proto__`, `constructor`, and
+  `prototype` as defense-in-depth against prototype pollution.

@@ -22,14 +22,24 @@ from the `endpoints/` directory.
 
 ## Matching Algorithm
 
-For request `/users/42`:
+For request `GET /users/42`:
 
 1. Split into segments: `['users', '42']`.
 2. Filter routes to those with the same segment count.
 3. For each candidate, walk segments left to right:
    - Static segment: must equal exactly.
    - `_param` segment: matches anything; capture the value.
-4. From surviving candidates, pick the one with the **highest specificity**.
+4. Filter remaining candidates by HTTP method (routes must list the
+   request method).
+5. From surviving candidates, pick the one with the **highest specificity**.
+
+## Method Filtering
+
+The router now filters routes by HTTP method during matching. A route
+that only defines `GET` will not match a `POST` request, even if the
+path matches. Previously, method checking was deferred entirely to the
+responder; this change ensures the match result always has a valid
+method block.
 
 ## Specificity
 

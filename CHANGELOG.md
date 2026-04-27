@@ -6,6 +6,48 @@ then, minor versions may include breaking changes.
 
 ## [Unreleased]
 
+### Security
+- Proxy: reject pathnames starting with `//` to prevent SSRF via
+  authority-relative URL resolution.
+- Proxy: strip `X-Forwarded-For`, `X-Forwarded-Proto`, `X-Real-IP`,
+  and `Forwarded` headers from client requests to prevent IP spoofing.
+- Proxy: rewrite `Location` headers on redirects to non-upstream hosts
+  (original preserved as `X-Original-Location`) to prevent internal
+  URL leakage.
+- Recorder: strip `..`, `.`, and `~`-prefixed path segments from recorded
+  paths to prevent directory-traversal file writes.
+- Responder: clamp `delay` to a maximum of 30 seconds to prevent DoS
+  via unbounded sleep.
+- Responder: sanitize `\r\n` from all header values to prevent CRLF
+  header injection through template-rendered values.
+- Template: block `__proto__`, `constructor`, and `prototype` key traversal
+  in `readPath` for defense-in-depth.
+
+### Changed
+- Router: `match()` now filters routes by HTTP method instead of
+  deferring to the responder. This fixes edge cases where a route
+  matched the path but had no method block.
+- `startServer()` delegates to the `Smocky` class internally, removing
+  ~70 lines of duplicated `buildRuntime` logic. CLI `serve` now
+  automatically supports workspace/multi-source routing.
+- Router: `buildRouter` and `scanRoutes` only swallow `ENOENT` errors;
+  permission and other filesystem errors now propagate properly.
+
+### Fixed
+- Proxy: handle malformed `req.url` gracefully (returns 502 instead of
+  crashing).
+- Recorder: catch `res.json()` parse failures, `writeFile` errors, and
+  `readFile` errors gracefully instead of propagating unhandled
+  rejections.
+- DB loader: catch `readFile` errors with a warning instead of aborting
+  all seed loading.
+- Helpers loader: distinguish `ENOENT` from other `readdir` errors;
+  catch `copyFile` and `import()` failures with clear messages.
+- Hook runner: catch `copyFile` and `import()` failures with clear
+  messages instead of crashing.
+- Template: guard against null/undefined `ctx.req` in template
+  resolution.
+
 ## [0.1.0] — 2026-04-23
 
 First public, installable release.

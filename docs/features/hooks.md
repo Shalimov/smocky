@@ -86,7 +86,7 @@ See [Database](database.md) for `ctx.db` usage.
 ## Execution Model
 
 1. Templated response object is computed.
-2. Hook is dynamically imported (cached after first load).
+2. Hook is dynamically imported.
 3. `await hook(req, res, ctx)` is called.
 4. Resulting `res` proceeds through global header merge → delay → respond.
 
@@ -162,6 +162,9 @@ const hook: Hook = (_req, res) => {
 };
 export default hook;
 ```
+
+> `delay` is clamped to a maximum of 30 seconds (30 000 ms) to prevent
+> accidental or malicious denial-of-service via unbounded sleep.
 
 ## Anti-Patterns
 

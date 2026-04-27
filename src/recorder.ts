@@ -28,7 +28,13 @@ export function createRecorder(cfg: ResolvedRecordConfig): Recorder {
         return;
       }
 
-      const url = new URL(req.url);
+      let url: URL;
+      try {
+        url = new URL(req.url);
+      } catch {
+        return;
+      }
+
       if (!this.shouldRecord(url.pathname)) {
         log('skipped', req.method.toUpperCase(), url.pathname, 'filter');
         return;
@@ -40,10 +46,22 @@ export function createRecorder(cfg: ResolvedRecordConfig): Recorder {
         return;
       }
 
-      const body = await res.clone().json();
+      let body: unknown;
+      try {
+        body = await res.clone().json();
+      } catch {
+        log('skipped', req.method.toUpperCase(), url.pathname, 'invalid json body');
+        return;
+      }
+
       const folder = pathToFolder(url.pathname, cfg.outputDir);
       const filePath = join(folder, 'response.json');
-      await mkdir(folder, { recursive: true });
+      try {
+        await mkdir(folder, { recursive: true });
+      } catch (error) {
+        console.warn(`[recorder] failed to create directory ${folder}: ${error instanceof Error ? error.message : String(error)}`);
+        return;
+      }
 
       const existing = await readExistingDefinition(filePath);
       const method = req.method.toUpperCase();
@@ -58,7 +76,12 @@ export function createRecorder(cfg: ResolvedRecordConfig): Recorder {
         body,
       };
 
-      await writeFile(filePath, `${JSON.stringify(existing, null, 2)}\n`, 'utf8');
+      try {
+        await writeFile(filePath, `${JSON.stringify(existing, null, 2)}\n`, 'utf8');
+      } catch (error) {
+        console.warn(`[recorder] failed to write ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+        return;
+      }
       log('saved', method, url.pathname, filePath);
     },
   };
@@ -78,7 +101,14 @@ function matches(pathname: string, rules: Array<string | RegExp>): boolean {
 
 function pathToFolder(pathname: string, root: string): string {
   const parts = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
-  return resolve(root, ...parts);
+  const safeParts: string[] = [];
+  for (const part of parts) {
+    if (part === '..' || part === '.' || part.startsWith('~')) {
+      continue;
+    }
+    safeParts.push(part);
+  }
+  return resolve(root, ...safeParts);
 }
 
 async function readExistingDefinition(filePath: string): Promise<ResponseDefinition> {
@@ -89,7 +119,8 @@ async function readExistingDefinition(filePath: string): Promise<ResponseDefinit
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return {};
     }
-    throw error;
+    console.warn(`[recorder] failed to read ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    return {};
   }
 }
 

@@ -99,8 +99,7 @@ haven't mocked is transparently proxied to the real backend.
 
 ### 4. Iterate
 
-Add or edit files under `endpoints/` and they're picked up on the next
-request — no restart required. Read the [Folder
+Read the [Folder
 Conventions](docs/features/conventions.md) for the rules, then dive
 into [Templating](docs/features/templating.md), [Hooks](docs/features/hooks.md),
 or the [Database](docs/features/database.md) when you need more.
@@ -362,12 +361,18 @@ Read more: [docs/reference/configuration.md](docs/reference/configuration.md)
 ## Library Use
 
 ```ts
-import { startServer } from 'smocky';
+import { Smocky, startServer } from 'smocky';
 
+// Quick start with startServer
 const server = await startServer({ port: 4000 });
-
-// later
 await server.stop();
+
+// Full control with the Smocky class (workspace support)
+const instance = await Smocky.start({
+  port: 4000,
+  workspace: 'user-tests',
+});
+await instance.stop();
 ```
 
 Read more: [docs/reference/api.md](docs/reference/api.md)

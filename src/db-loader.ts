@@ -20,7 +20,14 @@ export async function loadSeeds(db: Db, dir: string): Promise<void> {
 
     const collectionName = parse(file).name;
     const filePath = join(absoluteDir, file);
-    const content = await readFile(filePath, 'utf8');
+
+    let content: string;
+    try {
+      content = await readFile(filePath, 'utf8');
+    } catch (error) {
+      console.warn(`[smocky] failed to read db/${file}: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
 
     let items: unknown;
     try {

@@ -30,12 +30,13 @@ Request flow:
 |-----------------|-------------------------------------------------------|
 | URL             | `baseUrl + req.path + req.search`                     |
 | Method          | Forwarded unchanged                                   |
-| Headers         | Forwarded; hop-by-hop headers stripped                |
+| Headers         | Forwarded; hop-by-hop and client-IP headers stripped  |
 | `Host` header   | Replaced with the upstream host                       |
 | Body            | Streamed when possible                                |
 | Status          | Returned unchanged                                    |
 | Response headers| Returned unchanged (no `globalHeaders` merge)         |
 | Response body   | Streamed back to the client                           |
+| Redirects       | `Location` rewritten for non-upstream hosts           |
 
 The following hop-by-hop headers (RFC 7230 §6.1) are stripped:
 
@@ -50,6 +51,16 @@ Transfer-Encoding
 Upgrade
 ```
 
+Client-IP headers are also stripped to prevent spoofing:
+
+```
+X-Forwarded-For
+X-Forwarded-Host
+X-Forwarded-Proto
+X-Real-IP
+Forwarded
+```
+
 ## Errors
 
 | Condition          | Response                                              |
@@ -57,6 +68,23 @@ Upgrade
 | Network failure    | `502` with `{ error: 'ProxyError', message }`         |
 | Timeout            | `504` with `{ error: 'ProxyTimeout' }`                |
 | Invalid `baseUrl`  | Logged at startup; requests get `502`                 |
+| Malformed URL      | `502` with `{ error: 'ProxyError', message }`         |
+| SSRF path pattern  | `502` with `{ error: 'ProxyError', message }`         |
+
+Requests with `//`-prefixed pathnames are rejected at the proxy layer to
+prevent authority-relative URL resolution (SSRF).
+
+## Redirects
+
+When the upstream returns a 3xx response, the proxy inspects the
+`Location` header:
+
+- If `Location` points to the same host as `baseUrl` → passed through.
+- If `Location` points to a different host → it is stripped and
+  preserved as `X-Original-Location` to prevent internal URL leakage.
+
+`redirect: 'manual'` is used on the upstream fetch, so the client
+receives the 3xx and follows it directly.
 
 ## Recorder
 
@@ -114,6 +142,9 @@ RegExps match the full path.
 /users/123       → endpoints/users/123/response.json
 /users/123/posts → endpoints/users/123/posts/response.json
 ```
+
+Path segments equal to `..`, `.`, or starting with `~` are silently
+dropped to prevent directory-traversal writes.
 
 > Numeric IDs become **literal folders**, not `_id`. After recording,
 > manually rename folders like `123/` to `_id/` to convert them into

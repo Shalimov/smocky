@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { access } from 'node:fs/promises';
 
+import { normalizeHeaders } from './utils';
 import type {
   Config,
   ResolvedConfig,
@@ -33,6 +34,23 @@ const DEFAULTS = {
 };
 
 export function defineConfig(config: Config): Config {
+  return config;
+}
+
+export async function loadConfigDefaults(): Promise<ResolvedConfig> {
+  const cwd = process.cwd();
+  const config: ResolvedConfig = {
+    port: DEFAULTS.port,
+    baseUrl: DEFAULTS.baseUrl,
+    endpointsDir: resolve(cwd, DEFAULTS.endpointsDir),
+    helpersDir: resolve(cwd, DEFAULTS.helpersDir),
+    globalHeaders: normalizeHeaders(DEFAULTS.globalHeaders),
+    record: { ...DEFAULT_RECORD },
+    db: { ...DEFAULT_DB },
+    openapi: undefined,
+  };
+  config.record.outputDir = resolve(cwd, config.record.outputDir);
+  config.db.dir = resolve(cwd, config.db.dir);
   return config;
 }
 
@@ -81,6 +99,8 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
     record,
     db,
     openapi,
+    workspace: userConfig.workspace,
+    workspaces: userConfig.workspaces ? [...userConfig.workspaces] : undefined,
   };
 
   applyEnvOverrides(config);
@@ -150,7 +170,7 @@ function applyEnvOverrides(config: ResolvedConfig): void {
 }
 
 function validateConfig(config: ResolvedConfig): void {
-  if (!Number.isInteger(config.port) || config.port <= 0) {
+  if (!Number.isInteger(config.port) || config.port < 0) {
     throw new Error(`[smocky] invalid port: ${String(config.port)}`);
   }
 
@@ -163,13 +183,7 @@ function validateConfig(config: ResolvedConfig): void {
   }
 }
 
-function normalizeHeaders(headers: Record<string, string>): Record<string, string> {
-  const normalized: Record<string, string> = {};
-  for (const [key, value] of Object.entries(headers)) {
-    normalized[key.toLowerCase()] = value;
-  }
-  return normalized;
-}
+
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {

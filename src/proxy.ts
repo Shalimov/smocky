@@ -1,3 +1,5 @@
+import { jsonResponse } from './utils';
+
 const HOP_BY_HOP_HEADERS = [
   'connection',
   'keep-alive',
@@ -7,6 +9,14 @@ const HOP_BY_HOP_HEADERS = [
   'trailer',
   'transfer-encoding',
   'upgrade',
+];
+
+const CLIENT_IP_HEADERS = [
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'x-real-ip',
+  'forwarded',
 ];
 
 export interface Proxy {
@@ -35,11 +45,22 @@ export function createProxy(baseUrl: string, opts?: { timeoutMs?: number }): Pro
         );
       }
 
+      let incomingUrl: URL;
+      try {
+        incomingUrl = new URL(req.url);
+      } catch {
+        return jsonResponse({ error: 'ProxyError', message: 'Invalid request URL' }, 502);
+      }
+
+      if (incomingUrl.pathname.startsWith('//')) {
+        return jsonResponse({ error: 'ProxyError', message: 'Invalid request path' }, 502);
+      }
+
       const startedAt = Date.now();
-      const incomingUrl = new URL(req.url);
       const upstreamUrl = new URL(`${incomingUrl.pathname}${incomingUrl.search}`, upstreamBase);
       const headers = new Headers(req.headers);
       stripHopByHopHeaders(headers);
+      stripClientIpHeaders(headers);
       headers.set('host', upstreamUrl.host);
 
       const controller = new AbortController();
@@ -60,6 +81,7 @@ export function createProxy(baseUrl: string, opts?: { timeoutMs?: number }): Pro
 
         const responseHeaders = new Headers(upstreamResponse.headers);
         stripHopByHopHeaders(responseHeaders);
+        rewriteLocation(responseHeaders, upstreamBase);
         return new Response(upstreamResponse.body, {
           status: upstreamResponse.status,
           headers: responseHeaders,
@@ -99,9 +121,28 @@ function stripHopByHopHeaders(headers: Headers): void {
   }
 }
 
-function jsonResponse(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  });
+function stripClientIpHeaders(headers: Headers): void {
+  for (const header of CLIENT_IP_HEADERS) {
+    headers.delete(header);
+  }
 }
+
+function rewriteLocation(headers: Headers, upstreamBase: URL): void {
+  const location = headers.get('location');
+  if (!location) {
+    return;
+  }
+
+  try {
+    const locationUrl = new URL(location, upstreamBase);
+    if (locationUrl.host === upstreamBase.host) {
+      return;
+    }
+    headers.set('x-original-location', location);
+    headers.delete('location');
+  } catch {
+    // invalid location URL, leave as-is
+  }
+}
+
+

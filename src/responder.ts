@@ -1,3 +1,4 @@
+import { normalizeHeaders, jsonResponse } from './utils';
 import { HookError, runHook } from './hook-runner';
 import type { Db } from './db';
 import type { MatchResult } from './router';
@@ -10,6 +11,8 @@ import type {
   ResponseDefinition,
   ResponseMethodBlock,
 } from './types';
+
+const MAX_DELAY = 30_000;
 
 export interface Responder {
   respond(match: MatchResult, req: MockRequest): Promise<Response>;
@@ -31,7 +34,7 @@ export async function resolveMockResponse(
     status: block.status ?? 200,
     headers: normalizeHeaders(block.headers ?? {}),
     body: block.body ?? {},
-    delay: Math.max(0, block.delay ?? 0),
+    delay: Math.min(MAX_DELAY, Math.max(0, block.delay ?? 0)),
   };
   const ctx: Ctx = { req, db };
 
@@ -96,7 +99,7 @@ async function renderHeaders(
   const rendered: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
     const resolved = await engine.render(value, ctx);
-    rendered[key.toLowerCase()] = resolved === undefined || resolved === null ? '' : String(resolved);
+    rendered[key.toLowerCase()] = (resolved === undefined || resolved === null ? '' : String(resolved)).replace(/[\r\n]/g, '');
   }
   return rendered;
 }
@@ -214,20 +217,4 @@ async function tryReadBody(req: Request): Promise<unknown> {
   return raw;
 }
 
-function jsonResponse(body: unknown, status: number, headers?: Record<string, string>): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'content-type': 'application/json',
-      ...(headers ?? {}),
-    },
-  });
-}
 
-function normalizeHeaders(headers: Record<string, string>): Record<string, string> {
-  const normalized: Record<string, string> = {};
-  for (const [key, value] of Object.entries(headers)) {
-    normalized[key.toLowerCase()] = value;
-  }
-  return normalized;
-}
