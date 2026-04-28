@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // src/cli/init -> ../../.. = repo root, where templates/ lives
-const TEMPLATES_ROOT = resolve(HERE, '../../..', 'templates');
+const TEMPLATES_ROOT = resolve(HERE, '../../..', 'examples', 'templates');
 
 interface WriteFileOpts {
   force?: boolean;

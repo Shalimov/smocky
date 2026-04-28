@@ -1,5 +1,5 @@
 import { Smocky } from './smocky';
-import type { SmockyOptions } from './types';
+import type { RecordConfig, SmockyOptions } from './types';
 
 export { Smocky } from './smocky';
 export type { SmockyHandle } from './smocky';
@@ -24,7 +24,7 @@ export interface StartOptions {
   config?: string;
   port?: number;
   baseUrl?: string;
-  record?: boolean;
+  record?: boolean | RecordConfig;
 }
 
 export async function startServer(opts: StartOptions = {}): Promise<ServerHandle> {
@@ -32,7 +32,12 @@ export async function startServer(opts: StartOptions = {}): Promise<ServerHandle
     config: opts.config,
     port: opts.port,
     baseUrl: opts.baseUrl,
-    record: opts.record !== undefined ? { enabled: opts.record } : undefined,
+    record:
+      opts.record !== undefined
+        ? typeof opts.record === 'boolean'
+          ? { enabled: opts.record }
+          : opts.record
+        : undefined,
   };
 
   const instance = await Smocky.start(smockyOpts);

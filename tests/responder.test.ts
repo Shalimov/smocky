@@ -29,12 +29,15 @@ const baseConfig: ResolvedConfig = {
     include: [],
     exclude: [],
     overwrite: false,
+    fixturesDir: './fixtures',
   },
   db: {
     dir: '/unused/db',
     persist: false,
     autoId: 'uuid',
   },
+  replayOnly: false,
+  fixturesDir: './fixtures',
 };
 
 describe('createResponder', () => {

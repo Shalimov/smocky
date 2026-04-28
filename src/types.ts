@@ -35,6 +35,7 @@ export type RecordRule = string | RegExp;
 export interface RecordConfig {
   enabled?: boolean;
   outputDir?: string;
+  fixturesDir?: string;
   include?: RecordRule[];
   exclude?: RecordRule[];
   overwrite?: boolean;
@@ -43,6 +44,7 @@ export interface RecordConfig {
 export interface ResolvedRecordConfig {
   enabled: boolean;
   outputDir: string;
+  fixturesDir: string;
   include: RecordRule[];
   exclude: RecordRule[];
   overwrite: boolean;
@@ -93,6 +95,8 @@ export interface Config {
   openapi?: OpenApiConfig;
   workspace?: string;
   workspaces?: string[];
+  replayOnly?: boolean;
+  fixturesDir?: string;
 }
 
 export interface ResolvedConfig {
@@ -106,6 +110,8 @@ export interface ResolvedConfig {
   openapi?: ResolvedOpenApiConfig;
   workspace?: string;
   workspaces?: string[];
+  replayOnly: boolean;
+  fixturesDir: string;
 }
 
 export interface SmockyOptions {
@@ -119,6 +125,8 @@ export interface SmockyOptions {
   db?: DbConfig;
   workspace?: string;
   workspaces?: string[];
+  replayOnly?: boolean;
+  fixturesDir?: string;
 }
 
 export interface ResponseMethodBlock {

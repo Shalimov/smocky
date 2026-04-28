@@ -3,8 +3,8 @@ import { defineConfig } from 'smocky';
 export default defineConfig({
   port: 3000,
   baseUrl: 'https://jsonplaceholder.typicode.com',
-  endpointsDir: './endpoints',
-  helpersDir: './helpers',
+  endpointsDir: './examples/endpoints',
+  helpersDir: './examples/helpers',
   globalHeaders: {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': '*',
@@ -14,7 +14,7 @@ export default defineConfig({
     enabled: false,
   },
   db: {
-    dir: './db',
+    dir: './examples/db',
     persist: false,
     autoId: 'uuid',
   },

@@ -1,4 +1,4 @@
-import type { Report, CheckResult, OpReport } from './types';
+import type { Report, CheckResult, OpReport, DiffReport } from './types';
 
 export function createReport(): Report {
   return {
@@ -22,7 +22,20 @@ export function setMockResult(report: Report, method: string, path: string, resu
   refreshTotals(report);
 }
 
-export function printReport(report: Report): string {
+export function reportToJson(report: Report): string {
+  const json = {
+    totals: report.totals,
+    endpoints: report.ops.map((op) => ({
+      method: op.method,
+      path: op.path,
+      api: op.api ?? null,
+      mock: op.mock ?? null,
+    })),
+  };
+  return JSON.stringify(json, null, 2);
+}
+
+export function printReport(report: Report): void {
   const useColor = Boolean(process.stdout.isTTY);
   const lines: string[] = [];
 
@@ -45,9 +58,7 @@ export function printReport(report: Report): string {
       `${countLabel(report.totals.warnings, 'warning', 'warnings')}`,
   );
 
-  const output = lines.join('\n');
-  console.log(output);
-  return output;
+  console.log(lines.join('\n'));
 }
 
 function upsertOp(report: Report, method: string, path: string): OpReport {
@@ -153,4 +164,41 @@ function symbolFor(status: CheckResult['status']): string {
 
 function countLabel(count: number, singular: string, plural: string): string {
   return `${count} ${count === 1 ? singular : plural}`;
+}
+
+export function printDiffReport(diff: DiffReport): void {
+  const lines: string[] = [];
+
+  const groups: { label: string; symbol: string; entries: typeof diff.entries }[] = [
+    { label: 'Regressions', symbol: '✗', entries: diff.entries.filter((e) => e.change === 'regression') },
+    { label: 'Fixed', symbol: '✓', entries: diff.entries.filter((e) => e.change === 'fixed') },
+    { label: 'New', symbol: '+', entries: diff.entries.filter((e) => e.change === 'new') },
+    { label: 'Removed', symbol: '−', entries: diff.entries.filter((e) => e.change === 'removed') },
+  ];
+
+  for (const group of groups) {
+    if (group.entries.length === 0) continue;
+    lines.push(`${group.label} (${group.entries.length}):`);
+    for (const entry of group.entries) {
+      lines.push(`  ${group.symbol} ${entry.method} ${entry.path}`);
+
+      if (entry.change === 'regression' || entry.change === 'fixed') {
+        const prevStatus = entry.previous?.status ?? '?';
+        const currStatus = entry.current?.status ?? '?';
+        lines.push(`     was: ${prevStatus} → now: ${currStatus}`);
+      }
+    }
+    lines.push('');
+  }
+
+  lines.push(
+    `${diff.summary.total} total · ` +
+      `${countLabel(diff.summary.regressions, 'regression', 'regressions')} · ` +
+      `${countLabel(diff.summary.fixed, 'fixed', 'fixed')} · ` +
+      `${countLabel(diff.summary.new, 'new', 'new')} · ` +
+      `${countLabel(diff.summary.removed, 'removed', 'removed')} · ` +
+      `${diff.summary.unchanged} unchanged`,
+  );
+
+  console.log(lines.join('\n'));
 }

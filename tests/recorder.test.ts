@@ -14,6 +14,7 @@ describe('recorder', () => {
         include: ['/api'],
         exclude: [/^\/api\/internal/],
         overwrite: false,
+        fixturesDir: './fixtures',
       });
 
       expect(recorder.shouldRecord('/api/users')).toBe(true);
@@ -57,6 +58,7 @@ describe('recorder', () => {
         include: [],
         exclude: [],
         overwrite: false,
+        fixturesDir: './fixtures',
       });
 
       const first = new Request('http://localhost/users/42', { method: 'GET' });

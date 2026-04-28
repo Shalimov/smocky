@@ -14,6 +14,7 @@ import type {
 const DEFAULT_RECORD: ResolvedRecordConfig = {
   enabled: false,
   outputDir: './endpoints',
+  fixturesDir: './fixtures',
   include: [],
   exclude: [],
   overwrite: false,
@@ -31,6 +32,7 @@ const DEFAULTS = {
   endpointsDir: './endpoints',
   helpersDir: './helpers',
   globalHeaders: {},
+  fixturesDir: './fixtures',
 };
 
 export function defineConfig(config: Config): Config {
@@ -48,8 +50,11 @@ export async function loadConfigDefaults(): Promise<ResolvedConfig> {
     record: { ...DEFAULT_RECORD },
     db: { ...DEFAULT_DB },
     openapi: undefined,
+    replayOnly: false,
+    fixturesDir: resolve(cwd, DEFAULTS.fixturesDir),
   };
   config.record.outputDir = resolve(cwd, config.record.outputDir);
+  config.record.fixturesDir = resolve(cwd, config.record.fixturesDir);
   config.db.dir = resolve(cwd, config.db.dir);
   return config;
 }
@@ -101,6 +106,8 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
     openapi,
     workspace: userConfig.workspace,
     workspaces: userConfig.workspaces ? [...userConfig.workspaces] : undefined,
+    replayOnly: userConfig.replayOnly ?? (!userConfig.baseUrl),
+    fixturesDir: resolve(cwd, userConfig.fixturesDir ?? DEFAULTS.fixturesDir),
   };
 
   applyEnvOverrides(config);
@@ -115,6 +122,7 @@ function mergeRecordConfig(record: Config['record'], endpointsDir?: string): Res
   return {
     enabled: record?.enabled ?? DEFAULT_RECORD.enabled,
     outputDir: record?.outputDir ?? endpointsDir ?? DEFAULT_RECORD.outputDir,
+    fixturesDir: record?.fixturesDir ?? DEFAULT_RECORD.fixturesDir,
     include: record?.include ? [...record.include] : [...DEFAULT_RECORD.include],
     exclude: record?.exclude ? [...record.exclude] : [...DEFAULT_RECORD.exclude],
     overwrite: record?.overwrite ?? DEFAULT_RECORD.overwrite,

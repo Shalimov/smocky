@@ -8,6 +8,8 @@ import { defineCommand, runMain } from 'citty';
 import { startServer } from '../index';
 import { runCheckCommand } from '../checker/orchestrator';
 import { runInit } from './commands/init';
+import { runRecord, type RecordOptions } from './commands/record';
+import { compareSnapshots, printSnapshotReport } from '../snapshot';
 
 async function readVersion(): Promise<string> {
   const packageJsonPath = resolve(import.meta.dir, '../../package.json');
@@ -80,6 +82,11 @@ const main = defineCommand({
         port: { type: 'string', description: 'Override port' },
         'base-url': { type: 'string', description: 'Override baseUrl' },
         fail: { type: 'boolean', description: 'Exit non-zero on mismatch' },
+        output: { type: 'string', description: 'Output format: text | json' },
+        out: { type: 'string', description: 'Write report to file' },
+        diff: { type: 'boolean', description: 'Compare against baseline' },
+        baseline: { type: 'string', description: 'Path to baseline file' },
+        'save-baseline': { type: 'boolean', description: 'Save current results as baseline' },
       },
       async run({ args, rawArgs }) {
         const target = (args.target as string | undefined) ?? 'all';
@@ -94,8 +101,80 @@ const main = defineCommand({
             baseUrl: (args['base-url'] as string | undefined) ?? undefined,
             fail: rawArgs.includes('--fail') ? true : undefined,
             target: target as 'api' | 'mocks' | 'all',
+            output: args.output as string | undefined,
+            out: args.out as string | undefined,
+            diff: rawArgs.includes('--diff') ? true : undefined,
+            baseline: args.baseline as string | undefined,
+            saveBaseline: rawArgs.includes('--save-baseline') ? true : undefined,
           });
           process.exit(code);
+        } catch (error) {
+          console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
+          process.exit(1);
+        }
+      },
+    },
+    record: {
+      meta: { name: 'record', description: 'Record real API responses as fixtures' },
+      args: {
+        config: { type: 'string', description: 'Path to smocky.config.ts' },
+        port: { type: 'string', description: 'Override port' },
+        'base-url': { type: 'string', description: 'Override baseUrl' },
+        exec: { type: 'string', description: 'Command to run during recording' },
+        to: { type: 'string', description: 'Output directory for fixtures' },
+        overwrite: { type: 'boolean', description: 'Overwrite existing fixtures' },
+        'check-snapshots': { type: 'string', description: 'Compare recorded output against a baseline directory' },
+        'update-snapshots': { type: 'boolean', description: 'Update baseline with recorded output' },
+      },
+      async run({ args }) {
+        try {
+          const opts: RecordOptions = {
+            config: args.config as string | undefined,
+            port: args.port ? Number(args.port) : undefined,
+            baseUrl: (args['base-url'] as string | undefined) ?? undefined,
+            exec: args.exec as string | undefined,
+            to: args.to as string | undefined,
+            overwrite: args.overwrite ? true : undefined,
+            checkSnapshots: (args['check-snapshots'] as string | undefined) ?? undefined,
+            updateSnapshots: args['update-snapshots'] ? true : undefined,
+          };
+          const code = await runRecord(opts);
+          process.exit(code);
+        } catch (error) {
+          console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
+          process.exit(1);
+        }
+      },
+    },
+    snapshot: {
+      meta: { name: 'snapshot', description: 'Compare fixture snapshots' },
+      args: {
+        baseline: { type: 'positional', description: 'Baseline fixtures directory', required: true },
+        current: { type: 'positional', description: 'Current fixtures directory', required: true },
+        fail: { type: 'boolean', description: 'Exit non-zero on changes' },
+      },
+      async run({ args }) {
+        const baseline = args.baseline as string | undefined;
+        const current = args.current as string | undefined;
+
+        if (!baseline || !current) {
+          console.error('[smocky] snapshot check requires <baseline> and <current> directories');
+          process.exit(1);
+        }
+
+        try {
+          const report = await compareSnapshots(baseline, current);
+          printSnapshotReport(report);
+
+          const hasChanges = report.diffs.some(
+            (d) => d.change === 'modified' || d.change === 'removed',
+          );
+
+          if (args.fail && hasChanges) {
+            process.exit(3);
+          }
+
+          process.exit(0);
         } catch (error) {
           console.error(`[smocky] ${error instanceof Error ? error.message : String(error)}`);
           process.exit(1);

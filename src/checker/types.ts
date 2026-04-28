@@ -1,6 +1,28 @@
 import type { RecordRule } from '../types';
 import type { Mismatch } from './validator';
 
+export type CheckOutputFormat = 'text' | 'json';
+
+export interface DiffEntry {
+  method: string;
+  path: string;
+  change: 'regression' | 'fixed' | 'new' | 'removed' | 'unchanged';
+  previous: CheckResult | null;
+  current: CheckResult | null;
+}
+
+export interface DiffReport {
+  entries: DiffEntry[];
+  summary: {
+    total: number;
+    regressions: number;
+    fixed: number;
+    new: number;
+    removed: number;
+    unchanged: number;
+  };
+}
+
 export interface OpenApiMediaType {
   schema?: Record<string, unknown>;
   [key: string]: unknown;

@@ -326,7 +326,10 @@ function baseResolvedConfig(endpointsDir: string, helpersDir: string, dbDir: str
       include: [],
       exclude: [],
       overwrite: false,
+      fixturesDir: './fixtures',
     },
+    replayOnly: false,
+    fixturesDir: './fixtures',
     db: {
       dir: dbDir,
       persist: false,

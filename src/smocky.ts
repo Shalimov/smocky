@@ -15,6 +15,7 @@ import type { ResolvedConfig, SmockyOptions } from './types';
 
 const WORKSPACE_SOURCE_PRIORITY = 10;
 const COMMON_SOURCE_PRIORITY = 0;
+const FIXTURES_SOURCE_PRIORITY = -10;
 
 export { createEmptyRouter, scanRoutes } from './router';
 
@@ -74,6 +75,10 @@ export class Smocky {
 
         if (!rt.cfg.baseUrl) {
           return notFoundResponse(url.pathname);
+        }
+
+        if (rt.cfg.replayOnly) {
+          return noFixtureResponse(url.pathname);
         }
 
         const upstream = await rt.proxy.forward(raw.clone());
@@ -159,6 +164,12 @@ async function resolveSmockyConfig(opts: SmockyOptions): Promise<ResolvedConfig>
   if (opts.record !== undefined) {
     config.record = { ...config.record, ...opts.record };
   }
+  if (opts.replayOnly !== undefined) {
+    config.replayOnly = opts.replayOnly;
+  }
+  if (opts.fixturesDir !== undefined) {
+    config.fixturesDir = resolve(cwd, opts.fixturesDir);
+  }
 
   // Allow port 0 (random port) for test usage
   if (config.port === 0) {
@@ -222,6 +233,13 @@ async function buildRuntime(cfg: ResolvedConfig): Promise<RuntimeState> {
     }
   }
 
+  if (cfg.fixturesDir) {
+    const fixtureRoutes = await scanRoutes(cfg.fixturesDir);
+    if (fixtureRoutes.length > 0) {
+      router.addSource(fixtureRoutes, FIXTURES_SOURCE_PRIORITY);
+    }
+  }
+
   return {
     cfg,
     router,
@@ -264,6 +282,19 @@ function notFoundResponse(pathname: string): Response {
     }),
     {
       status: 404,
+      headers: { 'content-type': 'application/json' },
+    },
+  );
+}
+
+function noFixtureResponse(pathname: string): Response {
+  return new Response(
+    JSON.stringify({
+      error: 'NoFixture',
+      message: `No mock matched ${pathname} and replay-only mode is active (proxy disabled).`,
+    }),
+    {
+      status: 503,
       headers: { 'content-type': 'application/json' },
     },
   );
